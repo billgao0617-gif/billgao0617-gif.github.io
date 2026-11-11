@@ -1,7 +1,7 @@
 (() => {
   const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const localize=()=>document.querySelectorAll('[data-en][data-zh]').forEach(e=>{e.textContent=e.dataset[window.siteLanguage?.()==='zh'?'zh':'en'];});
-  window.addEventListener('site-language-change',localize);localize();
+  const localize=()=>{document.querySelectorAll('[data-en][data-zh]').forEach(e=>{e.textContent=e.dataset[window.siteLanguage?.()==='zh'?'zh':'en'];});if(/^\/(journey|about)\//.test(location.pathname)){const title=document.querySelector('main h1,main h2');if(title)document.title=title.textContent.replace(/\n/g,' ')+' | Gabbrotech';}};
+  window.addEventListener('site-language-change',localize);window.addEventListener('site-theme-change',localize);localize();
   const track=document.querySelector('.journey-track'),cards=[...document.querySelectorAll('.journey-card')];
   if(track){
     let index=0;
@@ -10,11 +10,9 @@
     document.querySelectorAll('[data-carousel]').forEach(b=>b.addEventListener('click',()=>go(index+Number(b.dataset.carousel))));
     track.addEventListener('scroll',update,{passive:true});track.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();go(index+(e.key==='ArrowRight'?1:-1));}});update();
   }
-  function revealJourney(){const target=document.getElementById('our-journey');if(target){target.hidden=false;requestAnimationFrame(()=>target.scrollIntoView({behavior:reduced()?'instant':'smooth',block:'start'}));}}
-  document.querySelectorAll('a[href="#our-journey"]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();history.replaceState(null,'','#our-journey');revealJourney();}));
-  if(location.hash==='#our-journey')revealJourney();
+  if(location.pathname==='/'&&location.hash==='#our-journey')location.replace('/journey/');
   document.querySelectorAll('a[href="#architecture"],a[href="#metrics"]').forEach(a=>a.addEventListener('click',()=>{const target=document.querySelector(a.getAttribute('href'));if(target?.closest('details'))target.closest('details').open=true;}));
-  const initialTarget=location.hash&&document.getElementById(location.hash.slice(1));if(initialTarget?.closest('details'))initialTarget.closest('details').open=true;
+  const initialTarget=location.hash?document.getElementById(location.hash.slice(1)):null;if(initialTarget?.closest('details'))initialTarget.closest('details').open=true;
   const explorer=document.querySelector('[data-explorer]'),gateway=document.getElementById('tool-entry');
   let opening=false;
   function openExplorer(scroll=true){
