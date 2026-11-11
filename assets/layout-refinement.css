@@ -1,0 +1,30 @@
+/* A clear brand statement above the journey cards. */
+.editorial-heading .company-slogan{font-size:clamp(3.8rem,7.6vw,7rem);line-height:1.02;letter-spacing:-.06em;max-width:1120px;margin:24px 0 28px;text-wrap:initial}
+.company-slogan span{display:block}.company-slogan span:last-child{color:var(--cyan)}
+
+/* Keep mission photography at a deliberate size instead of stretching it to the viewport. */
+.mission-photo.mission-editorial{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(32px,4vw,72px);align-items:center;width:min(100% - 64px,1440px);margin:0 auto;min-height:0;height:auto;max-height:none;overflow:visible;color:var(--text);isolation:auto}
+.mission-photo.mission-editorial::after{content:none}
+.mission-editorial .mission-visual{grid-column:2;grid-row:1;position:relative;margin:0;aspect-ratio:3/2;overflow:hidden;border-radius:4px;background:#071017}
+.mission-visual img{display:block;width:100%;height:100%;object-fit:contain}
+.mission-visual figcaption{position:absolute;inset:auto 0 0;padding:28px 18px 14px;background:linear-gradient(transparent,#071017bb);color:#e1edf4;font-size:.6rem}
+.mission-photo.mission-editorial>.mission-copy{grid-column:1;grid-row:1;position:static;max-width:none;padding:0}
+.mission-editorial .editorial-kicker{color:var(--cyan)}.mission-editorial h2{font-size:clamp(2.2rem,3.8vw,3.8rem);margin:22px 0;max-width:520px}
+.mission-photo.mission-editorial p{color:var(--muted);max-width:480px;margin:0;font-size:1rem;line-height:1.8}
+.mission-editorial .mission-symbols{gap:24px;flex-wrap:wrap;margin-top:30px}.mission-editorial .mission-symbols>div{color:var(--text)}.mission-editorial .mission-symbols svg{color:var(--cyan);width:28px;height:28px}
+
+/* A separate, bounded panorama gives the two photographs breathing room. */
+.orbital-divider{width:min(100% - 64px,1440px);height:auto;aspect-ratio:3.4;margin:clamp(64px,7vw,112px) auto 0;overflow:visible}
+.orbital-divider img{height:100%;object-fit:cover;object-position:50% 50%;border-radius:4px;mask-image:none}
+.orbital-divider small{bottom:20px;left:24px;z-index:1;padding:4px 8px;background:#071017a6;border-radius:2px}
+
+/* One product photograph, balanced with the three capabilities it communicates. */
+.render-grid.product-showcase{grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr);gap:clamp(36px,5vw,76px);align-items:center}
+.product-showcase figure{background:transparent;border-radius:0}.product-showcase figure img{aspect-ratio:3/2;padding:12px;object-fit:contain;max-height:580px}
+.product-showcase figcaption{padding:18px 12px;font-size:.75rem}
+.showcase-details article{display:flex;gap:20px;align-items:flex-start;padding:26px 0;border-top:1px solid var(--line)}
+.showcase-details article:last-child{border-bottom:1px solid var(--line)}.showcase-details svg{width:34px;height:34px;flex-shrink:0;color:var(--cyan)}
+.showcase-details h3{font:500 1.1rem/1.4 var(--display);letter-spacing:-.025em;margin:0 0 8px}.showcase-details p{font-size:.85rem;line-height:1.7;color:var(--muted);margin:0}
+@media(min-width:1800px){.editorial-heading{max-width:1504px}.editorial-product{max-width:1504px}.editorial-gallery{max-width:1504px}}
+@media(max-width:900px){.mission-photo.mission-editorial{gap:30px;grid-template-columns:1fr 1fr}.mission-editorial .mission-visual{aspect-ratio:4/5}.mission-visual img{object-fit:cover;object-position:58% 50%}.mission-editorial h2{font-size:2.5rem}.mission-editorial .mission-symbols{gap:16px}.render-grid.product-showcase{gap:30px;grid-template-columns:1.1fr .9fr}}
+@media(max-width:760px){.editorial-heading .company-slogan{font-size:clamp(2.3rem,12vw,5.2rem);margin:22px 0;line-height:1.06}.mission-photo.mission-editorial{width:calc(100% - 44px);grid-template-columns:1fr;gap:28px}.mission-photo.mission-editorial>.mission-copy{grid-column:1;grid-row:1}.mission-editorial .mission-visual{grid-column:1;grid-row:2;aspect-ratio:3/2}.mission-visual img{object-fit:contain}.mission-editorial h2{font-size:2.35rem}.mission-editorial .mission-symbols{margin-top:24px}.orbital-divider{width:calc(100% - 44px);aspect-ratio:2;margin-top:54px}.orbital-divider small{font-size:.48rem;left:10px;bottom:12px}.render-grid.product-showcase{grid-template-columns:1fr;gap:18px}.product-showcase figure img{padding:0;max-height:470px}.product-showcase figcaption{padding:14px 0}.showcase-details article{padding:20px 0}.showcase-details h3{font-size:1.05rem}}
