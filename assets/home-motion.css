@@ -1,0 +1,19 @@
+/* Progressive enhancement: content remains visible if scripting is unavailable. */
+.home-scroll-progress{position:fixed;top:0;left:0;right:0;height:2px;z-index:101;pointer-events:none;background:var(--cyan);transform-origin:0 50%;transform:scaleX(var(--page-progress,0));opacity:.8}
+.welcome-active .home-scroll-progress{opacity:0}
+.home-motion-ready [data-scroll-reveal]{opacity:0;transform:translateY(32px);transition:opacity .8s ease,transform .9s cubic-bezier(.2,.7,.2,1);transition-delay:var(--reveal-delay,0ms)}
+.home-motion-ready [data-scroll-reveal].is-inview{opacity:1;transform:none}
+.home-motion-ready .company-slogan span{transition:color .3s;transform:translate3d(calc(var(--intro-shift,0px) * -1),0,0)}
+.home-motion-ready .company-slogan span:last-child{transform:translate3d(var(--intro-shift,0px),0,0)}
+.home-motion-ready .journey-card>img{transform:translate3d(0,var(--card-shift,0px),0) scale(1.08);transition:transform .15s linear}
+.home-motion-ready .journey-card:hover>img{transform:translate3d(0,var(--card-shift,0px),0) scale(1.11)}
+.home-motion-ready .editorial-product-image img{transform:translate3d(0,var(--product-shift,0px),0) rotate(var(--product-tilt,0deg));transform-origin:50% 55%}
+.orbital-finale{position:relative;isolation:isolate;overflow:hidden;min-height:640px;height:min(80svh,850px);margin-top:clamp(50px,6vw,100px);display:flex;align-items:flex-end;justify-content:center;background:var(--bg)}
+.orbital-finale .orbital-atmosphere{position:absolute;z-index:-1;top:0;left:50%;width:100%;max-width:1920px;height:77%;object-fit:cover;object-position:50% 50%;border-radius:0;mix-blend-mode:screen;mask-image:radial-gradient(ellipse 74% 60% at 50% 48%,#000 15%,transparent 76%);transform:translate3d(-50%,var(--horizon-shift,0px),0) scale(1.05);pointer-events:none}
+.orbital-cta{text-align:center;padding:0 24px 74px;position:relative;z-index:1;width:100%}
+.orbital-cta h2{font:500 clamp(2rem,4.2vw,4rem)/1.15 var(--display);letter-spacing:-.045em;margin:0 auto 16px;text-wrap:balance;max-width:1100px}
+.orbital-cta .editorial-link{margin-top:14px}
+[data-theme=light] .orbital-finale .orbital-atmosphere{mix-blend-mode:normal;opacity:1;mask-image:radial-gradient(ellipse 74% 60% at 50% 48%,#000 15%,transparent 76%),url('/assets/editorial/orbital-sunrise.jpg');mask-mode:alpha,luminance;mask-size:100% 100%,cover;mask-position:center;mask-repeat:no-repeat;mask-composite:intersect}
+@media(min-width:2000px){.orbital-finale{height:800px}.orbital-finale .orbital-atmosphere{max-width:2240px}}
+@media(max-width:760px){.home-motion-ready [data-scroll-reveal]{transform:translateY(20px)}.home-motion-ready [data-scroll-reveal].is-inview{transform:none}.orbital-finale{min-height:480px;height:65svh;margin-top:36px}.orbital-finale .orbital-atmosphere{width:140%;max-width:none;height:73%;mask-image:radial-gradient(ellipse 72% 60% at 50% 48%,#000 8%,transparent 76%)}.orbital-cta{padding:0 24px 54px}.orbital-cta h2{font-size:clamp(1.9rem,8vw,2.7rem)}}
+@media(prefers-reduced-motion:reduce){.home-motion-ready [data-scroll-reveal]{opacity:1;transform:none;transition:none}.home-motion-ready .company-slogan span,.home-motion-ready .company-slogan span:last-child,.home-motion-ready .editorial-product-image img,.home-motion-ready .journey-card>img,.home-motion-ready .journey-card:hover>img{transform:none;transition:none}.orbital-finale .orbital-atmosphere{transform:translateX(-50%)}.home-scroll-progress{display:none}}
