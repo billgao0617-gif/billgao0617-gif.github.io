@@ -1,0 +1,11 @@
+.journey-track{cursor:grab;touch-action:pan-x pan-y}
+.journey-track.is-dragging{cursor:grabbing;scroll-snap-type:none;scroll-behavior:auto;user-select:none}
+.journey-track.is-dragging *{cursor:grabbing!important}
+.journey-card{display:block}.journey-card>img{-webkit-user-drag:none;user-select:none}
+.journey-select{position:absolute;inset:0;z-index:1;width:100%;height:100%;border:0;background:transparent;cursor:pointer;border-radius:inherit}
+.journey-select:focus-visible{outline:2px solid #9fe8f1;outline-offset:-6px}
+.journey-card-copy{pointer-events:none}.journey-card-copy .journey-link{pointer-events:auto;position:relative;z-index:2}
+.journey-card.is-active .journey-link{border-color:#9fe8f1}.journey-card:not(.is-active) .journey-link{opacity:.7}
+.journey-select-hint{margin:26px 24px 0;text-align:center;color:var(--muted);font-size:.72rem;letter-spacing:.04em}
+.journey-select-hint+.journey-controls{margin-top:18px}
+@media(prefers-reduced-motion:reduce){.journey-track{scroll-behavior:auto}}

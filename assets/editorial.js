@@ -2,14 +2,6 @@
   const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
   const localize=()=>{document.querySelectorAll('[data-en][data-zh]').forEach(e=>{e.textContent=e.dataset[window.siteLanguage?.()==='zh'?'zh':'en'];});if(/^\/(journey|about)\//.test(location.pathname)){const title=document.querySelector('main h1,main h2');if(title)document.title=title.textContent.replace(/\n/g,' ')+' | Gabbrotech';}};
   window.addEventListener('site-language-change',localize);window.addEventListener('site-theme-change',localize);localize();
-  const track=document.querySelector('.journey-track'),cards=[...document.querySelectorAll('.journey-card')];
-  if(track){
-    let index=0;
-    const update=()=>{const center=track.scrollLeft+track.clientWidth/2;index=cards.reduce((best,c,i)=>Math.abs(c.offsetLeft+c.offsetWidth/2-center)<Math.abs(cards[best].offsetLeft+cards[best].offsetWidth/2-center)?i:best,0);cards.forEach((c,i)=>c.classList.toggle('is-active',i===index));document.getElementById('journey-count').textContent=`0${index+1} / 03`;document.querySelector('[data-carousel="-1"]').disabled=index===0;document.querySelector('[data-carousel="1"]').disabled=index===cards.length-1;};
-    const go=next=>{next=Math.max(0,Math.min(cards.length-1,next));const card=cards[next];track.scrollTo({left:card.offsetLeft-(track.clientWidth-card.offsetWidth)/2,behavior:reduced()?'instant':'smooth'});};
-    document.querySelectorAll('[data-carousel]').forEach(b=>b.addEventListener('click',()=>go(index+Number(b.dataset.carousel))));
-    track.addEventListener('scroll',update,{passive:true});track.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();go(index+(e.key==='ArrowRight'?1:-1));}});update();
-  }
   if(location.pathname==='/'&&location.hash==='#our-journey')location.replace('/journey/');
   document.querySelectorAll('a[href="#architecture"],a[href="#metrics"]').forEach(a=>a.addEventListener('click',()=>{const target=document.querySelector(a.getAttribute('href'));if(target?.closest('details'))target.closest('details').open=true;}));
   const initialTarget=location.hash?document.getElementById(location.hash.slice(1)):null;if(initialTarget?.closest('details'))initialTarget.closest('details').open=true;
