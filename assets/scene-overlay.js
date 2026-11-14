@@ -1,6 +1,6 @@
 (() => {
  const header=document.querySelector('.site-header');
- const scenes=[...document.querySelectorAll('.scene-hero')];
+ const scenes=[...document.querySelectorAll('.scene-hero:not([data-hero-entry])')];
  let frame;
  function align(){
   frame=0;

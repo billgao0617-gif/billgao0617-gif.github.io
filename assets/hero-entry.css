@@ -1,0 +1,50 @@
+/* A small first frame paints immediately; decoded layers add articulated motion. */
+.home-experience .scene-hero{background:#030a13;min-height:620px;--hero-entry-duration:2100ms;--hero-entry-ease:cubic-bezier(.2,.65,.3,1)}
+.hero-entry-media{position:absolute;inset:0;overflow:hidden}
+.hero-entry-media::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#030a1370,transparent 62%),linear-gradient(0deg,#07101750,transparent 18%);pointer-events:none}
+.hero-entry-media>.hero-first-frame,.hero-entry-media>.hero-earth{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:100% 100%;pointer-events:none}
+.hero-entry-media>.hero-first-frame{z-index:1;object-fit:contain}
+.hero-entry-media>.hero-earth{object-fit:cover;object-position:50% 100%;opacity:1;transform:translateY(var(--intro-shift,0px));transform-origin:50% 100%}
+.hero-layered-stage{position:absolute;inset:0;width:100%;height:100%;opacity:0;overflow:visible;pointer-events:none}
+.hero-lift{transform-origin:870px 430px;transform:translateY(650px) rotate(10deg);will-change:transform}
+.hero-ready .hero-first-frame{opacity:0;visibility:hidden}
+.hero-ready .hero-earth,.hero-ready .hero-layered-stage{opacity:1}
+.hero-ready .hero-lift{animation:raise-smarttorque var(--hero-entry-duration) var(--hero-entry-ease) both}
+.hero-settled .hero-lift{will-change:auto}
+.hero-tool-outline{fill:transparent;stroke:#a3edf8;stroke-width:1.5;vector-effect:non-scaling-stroke;opacity:0;pointer-events:all;cursor:pointer;transition:opacity .4s}
+.hero-settled .hero-tool-outline{opacity:.75}
+.hero-tool-outline:hover,.hero-tool-target:focus .hero-tool-outline{opacity:1;fill:#9fe8f114;stroke-width:2.5}
+.hero-tool-target:focus-visible{outline:none}
+.hero-model-link{position:absolute;z-index:2;right:5%;top:54%;border:1px solid #9fe8f177;background:#071017bd;color:#b6f1f8;padding:10px 15px;font-size:.75rem;opacity:0;pointer-events:none;transition:opacity .35s}
+.hero-settled .hero-model-link{opacity:1;pointer-events:auto}
+.hero-replay{position:absolute;z-index:3;right:28px;bottom:20px;display:flex;align-items:center;gap:9px;border:0;background:#07101780;color:#d5ebf2;padding:8px 12px;font:400 .68rem var(--body);cursor:pointer}
+.hero-replay:disabled{visibility:hidden}.hero-replay:hover{color:#9fe8f1}.hero-replay>span:first-child{font-size:1.1rem}
+.home-experience .scene-hero-copy{top:15%;width:41%;max-width:580px}
+.home-experience .scene-hero-copy .company-slogan{font-size:clamp(2.8rem,4.9vw,5.5rem)}
+.home-motion-ready .scene-hero-copy[data-scroll-reveal]{opacity:1;transform:none;transition:none}
+.home-experience .site-header .brand-mark{animation:brand-arrival .7s ease-out both}
+@keyframes raise-smarttorque{from{transform:translateY(650px) rotate(10deg)}to{transform:translateY(0) rotate(0deg)}}
+@keyframes slogan-arrival{from{opacity:0;transform:translateY(42px);filter:blur(5px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+html.hero-entry-enabled [data-hero-entry]:not(.hero-ready):not(.hero-fallback) .company-slogan{opacity:0}
+.hero-ready .company-slogan{animation:slogan-arrival var(--hero-entry-duration) var(--hero-entry-ease) both}
+.hero-fallback .company-slogan{opacity:1}
+@keyframes brand-arrival{from{opacity:.4;transform:translateY(7px)}to{opacity:1;transform:none}}
+@media(min-width:761px){.hero-entry-media>.hero-first-frame{object-fit:contain}.hero-entry-media>.hero-earth{object-fit:cover}.hero-entry-media{background-image:linear-gradient(#030a13,#06172a)}.hero-model-link{top:auto;bottom:36%}}
+@media(min-width:761px) and (max-aspect-ratio:4/3){.home-experience .scene-hero-copy{top:8%;width:65%;max-width:650px}.home-experience .scene-hero-copy .company-slogan{font-size:clamp(3rem,5.5vw,5rem)}}
+@media(max-width:760px){
+ .home-experience .scene-hero{display:block;height:calc(100svh - var(--scene-header-height,70px));min-height:710px;max-height:950px}
+ .hero-entry-media{position:absolute;inset:0;aspect-ratio:auto}
+ .home-experience .scene-hero-copy{position:relative;top:auto;left:auto;width:100%;max-width:none;padding:28px 24px 0}
+ .home-experience .scene-hero-copy .company-slogan{font-size:clamp(2.6rem,10vw,4rem);margin:16px 0}
+ .home-experience .scene-hero-copy p{max-width:290px;line-height:1.55;font-size:.86rem;margin-bottom:0}
+ .home-experience .scene-hero-copy .editorial-link{margin-top:8px;font-size:.82rem;padding:9px 0}
+ .hero-layered-stage{inset:auto -6px 0 auto;width:660px;height:372px;max-width:none}
+ .hero-entry-media>.hero-earth{object-fit:cover;object-position:54% 100%}
+ .hero-entry-media>.hero-first-frame{inset:auto -6px 0 auto;width:660px;height:372px;max-width:none;object-fit:fill}
+ .hero-model-link{right:18px;top:auto;bottom:200px;font-size:.62rem;padding:7px 10px}
+ .home-experience .scene-concept-caption{position:absolute;left:20px;bottom:16px;padding:0;font-size:.55rem;max-width:170px}
+ .hero-replay{right:16px;bottom:10px;font-size:.6rem}
+}
+@media(prefers-reduced-motion:reduce){.hero-ready .company-slogan{animation:none;opacity:1;filter:none;transform:none}.hero-ready .hero-lift{animation:none;transform:none;will-change:auto}.hero-earth{transform:none}.hero-replay{display:none}.hero-model-link,.hero-tool-outline{transition:none}.home-experience .site-header .brand-mark{animation:none}}
+
+[data-deferred-src]{visibility:hidden}.home-experience noscript{display:contents}.journey-card noscript img{width:100%;height:100%;object-fit:cover}
