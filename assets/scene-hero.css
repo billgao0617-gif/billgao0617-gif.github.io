@@ -17,3 +17,8 @@
 @media(prefers-reduced-motion:reduce){.is-opening .scene-hero-media,.is-opening .scene-hero-copy{transition:none;transform:none}}
 .scene-tool-label{left:65%;top:38%}
 @media(max-width:760px){.scene-hero-media{aspect-ratio:1672/941}.scene-tool-label{left:60%;top:29%}}
+/* Fill the viewport below navigation; image and SVG use the identical cover crop. */
+.scene-hero{width:100%;max-width:none;margin:0;min-height:0;height:calc(100svh - var(--scene-header-height,78px));max-height:none;scroll-margin-top:var(--scene-header-height,78px)}
+.scene-hero-media>img{object-fit:cover;object-position:100% 50%;mask-image:none}
+@media(min-width:761px) and (max-aspect-ratio:4/3){.scene-hero-copy{top:9%;width:43%;max-width:430px}}
+@media(max-width:760px){.scene-hero{height:auto;min-height:calc(100svh - var(--scene-header-height,66px))}.scene-hero-media>img{object-fit:contain;object-position:50% 50%}}
