@@ -1,7 +1,7 @@
 (() => {
  const scene=document.querySelector('[data-hero-entry]');if(!scene)return;
  const motion=matchMedia('(prefers-reduced-motion: reduce)');
- const arm=scene.querySelector('.hero-lift'),slogan=scene.querySelector('.company-slogan'),replay=scene.querySelector('[data-hero-replay]');
+ const shoulder=scene.querySelector('.hero-shoulder'),arm=scene.querySelector('.hero-lift'),slogan=scene.querySelector('.company-slogan'),replay=scene.querySelector('[data-hero-replay]');
  let ready=false,visible=true,settled=false;
  const assets=['hero-earth.webp','hero-astronaut.webp','hero-arm.webp'];
  // Start below-fold downloads when approached, instead of competing with hero layers.
@@ -29,8 +29,8 @@
  });
  const observer=new IntersectionObserver(entries=>{
   visible=entries[0].isIntersecting;
-  arm.style.animationPlayState=slogan.style.animationPlayState=visible&&!document.hidden?'running':'paused';
+  shoulder.style.animationPlayState=arm.style.animationPlayState=slogan.style.animationPlayState=visible&&!document.hidden?'running':'paused';
  },{threshold:0});observer.observe(scene);
- document.addEventListener('visibilitychange',()=>{arm.style.animationPlayState=slogan.style.animationPlayState=visible&&!document.hidden?'running':'paused';});
+ document.addEventListener('visibilitychange',()=>{shoulder.style.animationPlayState=arm.style.animationPlayState=slogan.style.animationPlayState=visible&&!document.hidden?'running':'paused';});
  motion.addEventListener('change',()=>{if(ready){if(motion.matches)finish();else if(!settled)start();}});
 })();

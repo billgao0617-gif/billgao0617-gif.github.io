@@ -6,11 +6,15 @@
 .hero-entry-media>.hero-first-frame{z-index:1;object-fit:contain}
 .hero-entry-media>.hero-earth{object-fit:cover;object-position:50% 100%;opacity:1;transform:translateY(var(--intro-shift,0px));transform-origin:50% 100%}
 .hero-layered-stage{position:absolute;inset:0;width:100%;height:100%;opacity:0;overflow:visible;pointer-events:none}
-.hero-lift{transform-origin:870px 430px;transform:translateY(650px) rotate(10deg);will-change:transform}
+/* Shoulder and elbow pivots use the shared 1672 x 941 artwork coordinates. */
+.hero-shoulder,.hero-lift{transform-box:view-box;will-change:transform}
+.hero-shoulder{transform-origin:872px 479px;transform:rotate(4deg)}
+.hero-lift{transform-origin:575px 802px;transform:rotate(139deg)}
+.hero-ready .hero-shoulder{animation:shoulder-follow-through var(--hero-entry-duration) var(--hero-entry-ease) both}
 .hero-ready .hero-first-frame{opacity:0;visibility:hidden}
 .hero-ready .hero-earth,.hero-ready .hero-layered-stage{opacity:1}
 .hero-ready .hero-lift{animation:raise-smarttorque var(--hero-entry-duration) var(--hero-entry-ease) both}
-.hero-settled .hero-lift{will-change:auto}
+.hero-settled .hero-shoulder,.hero-settled .hero-lift{will-change:auto}
 .hero-tool-outline{fill:transparent;stroke:#a3edf8;stroke-width:1.5;vector-effect:non-scaling-stroke;opacity:0;pointer-events:all;cursor:pointer;transition:opacity .4s}
 .hero-settled .hero-tool-outline{opacity:.75}
 .hero-tool-outline:hover,.hero-tool-target:focus .hero-tool-outline{opacity:1;fill:#9fe8f114;stroke-width:2.5}
@@ -23,7 +27,8 @@
 .home-experience .scene-hero-copy .company-slogan{font-size:clamp(2.8rem,4.9vw,5.5rem)}
 .home-motion-ready .scene-hero-copy[data-scroll-reveal]{opacity:1;transform:none;transition:none}
 .home-experience .site-header .brand-mark{animation:brand-arrival .7s ease-out both}
-@keyframes raise-smarttorque{from{transform:translateY(650px) rotate(10deg)}to{transform:translateY(0) rotate(0deg)}}
+@keyframes shoulder-follow-through{from{transform:rotate(4deg)}to{transform:rotate(0deg)}}
+@keyframes raise-smarttorque{from{transform:rotate(139deg)}to{transform:rotate(0deg)}}
 @keyframes slogan-arrival{from{opacity:0;transform:translateY(42px);filter:blur(5px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
 html.hero-entry-enabled [data-hero-entry]:not(.hero-ready):not(.hero-fallback) .company-slogan{opacity:0}
 .hero-ready .company-slogan{animation:slogan-arrival var(--hero-entry-duration) var(--hero-entry-ease) both}
@@ -45,6 +50,6 @@ html.hero-entry-enabled [data-hero-entry]:not(.hero-ready):not(.hero-fallback) .
  .home-experience .scene-concept-caption{position:absolute;left:20px;bottom:16px;padding:0;font-size:.55rem;max-width:170px}
  .hero-replay{right:16px;bottom:10px;font-size:.6rem}
 }
-@media(prefers-reduced-motion:reduce){.hero-ready .company-slogan{animation:none;opacity:1;filter:none;transform:none}.hero-ready .hero-lift{animation:none;transform:none;will-change:auto}.hero-earth{transform:none}.hero-replay{display:none}.hero-model-link,.hero-tool-outline{transition:none}.home-experience .site-header .brand-mark{animation:none}}
+@media(prefers-reduced-motion:reduce){.hero-ready .company-slogan{animation:none;opacity:1;filter:none;transform:none}.hero-ready .hero-shoulder,.hero-ready .hero-lift{animation:none;transform:none;will-change:auto}.hero-earth{transform:none}.hero-replay{display:none}.hero-model-link,.hero-tool-outline{transition:none}.home-experience .site-header .brand-mark{animation:none}}
 
 [data-deferred-src]{visibility:hidden}.home-experience noscript{display:contents}.journey-card noscript img{width:100%;height:100%;object-fit:cover}
