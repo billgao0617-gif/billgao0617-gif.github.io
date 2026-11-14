@@ -166,7 +166,7 @@ page.addEventListener('keydown', event => {
   event.preventDefault(); go(target);
 });
 window.addEventListener('popstate', () => {
-  const index = stages.findIndex(stage => location.pathname === `/journey/${stage.slug}/`);
+  const index = location.pathname === '/journey/' ? 0 : stages.findIndex(stage => location.pathname === `/journey/${stage.slug}/`);
   if (index >= 0) go(index, false, false);
 });
 window.addEventListener('site-language-change', () => go(current, false, false));

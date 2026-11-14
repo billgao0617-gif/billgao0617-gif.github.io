@@ -10,10 +10,10 @@
   function openExplorer(scroll=true){
     if(!explorer||opening)return;opening=true;
     gateway?.classList.add('is-opening');explorer.hidden=false;explorer.classList.add('explorer-reveal');
-    setTimeout(()=>{gateway.hidden=true;explorer.classList.remove('explorer-reveal');if(scroll){history.replaceState(null,'','#explore');explorer.scrollIntoView({behavior:reduced()?'instant':'smooth',block:'start'});}window.dispatchEvent(new Event('resize'));opening=false;},reduced()?0:650);
+    setTimeout(()=>{if(gateway)gateway.hidden=true;explorer.classList.remove('explorer-reveal');if(scroll){history.replaceState(null,'','#explore');explorer.scrollIntoView({behavior:reduced()?'instant':'smooth',block:'start'});}window.dispatchEvent(new Event('resize'));opening=false;},reduced()?0:650);
   }
   document.querySelectorAll('[data-open-explorer]').forEach(button=>button.addEventListener('click',()=>openExplorer()));
   document.querySelectorAll('a[href="#explore"],a[href="#viewer-canvas"]').forEach(a=>a.addEventListener('click',e=>{if(explorer?.hidden){e.preventDefault();openExplorer();}}));
-  if(explorer&&['#explore','#viewer-canvas'].includes(location.hash))openExplorer(false);
-  if(explorer&&!['#explore','#viewer-canvas'].includes(location.hash)){const control=document.createElement('button');control.type='button';control.className='back-to-mission';control.innerHTML='<span data-i18n-skip data-en="← Back to mission view" data-zh="← 返回任务视角">← Back to mission view</span>';explorer.prepend(control);control.addEventListener('click',()=>{gateway.hidden=false;gateway.classList.remove('is-opening');explorer.hidden=true;history.replaceState(null,'','#tool-entry');gateway.scrollIntoView({behavior:'smooth'});});localize();}
+  if(explorer&&gateway&&['#explore','#viewer-canvas'].includes(location.hash))openExplorer(false);
+  if(explorer&&gateway&&!['#explore','#viewer-canvas'].includes(location.hash)){const control=document.createElement('button');control.type='button';control.className='back-to-mission';control.innerHTML='<span data-i18n-skip data-en="← Back to mission view" data-zh="← 返回任务视角">← Back to mission view</span>';explorer.prepend(control);control.addEventListener('click',()=>{gateway.hidden=false;gateway.classList.remove('is-opening');explorer.hidden=true;history.replaceState(null,'','#tool-entry');gateway.scrollIntoView({behavior:'smooth'});});localize();}
 })();

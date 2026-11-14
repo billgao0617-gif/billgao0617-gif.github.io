@@ -1,0 +1,6 @@
+/* Lead with the working model; keep the title compact above the explorer. */
+.product-direct .product-stage{padding-top:24px}
+.product-direct .stage-intro{display:block;padding-top:0;padding-bottom:0;margin-bottom:24px}
+.product-direct .stage-intro h1{font-size:clamp(1.7rem,3vw,2.8rem);margin:10px 0 0}
+@media(min-width:681px){.product-direct .explorer-grid{min-height:clamp(580px,calc(100svh - 230px),1000px)}}
+@media(max-width:680px){.product-direct .product-stage{padding-top:20px}.product-direct .stage-intro{margin-bottom:20px}}
