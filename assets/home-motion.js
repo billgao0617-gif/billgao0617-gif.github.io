@@ -2,7 +2,7 @@
   const root = document.documentElement;
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const intro = document.querySelector('#about');
-  const product = document.querySelector('#innovation');
+  const product = document.querySelector('.editorial-product');
   const finale = document.querySelector('.orbital-finale');
   if (!intro || !product || !finale) return;
   const cards = [...document.querySelectorAll('.journey-card')];
@@ -34,7 +34,7 @@
     if (started || root.classList.contains('welcome-active')) return;
     started = true;
     if (!motion.matches) {
-      const elements = document.querySelectorAll('.editorial-heading,.editorial-product-copy,.mission-copy,.mission-visual,.orbital-cta');
+      const elements = document.querySelectorAll('.scene-hero-copy,.editorial-heading,.editorial-product-copy,.mission-copy,.mission-visual,.orbital-cta');
       elements.forEach((el, index) => {
         el.setAttribute('data-scroll-reveal', '');
         el.style.setProperty('--reveal-delay', `${index === 3 ? 110 : 0}ms`);

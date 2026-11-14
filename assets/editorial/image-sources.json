@@ -7,5 +7,7 @@
   "product-detail.png": "Previously approved product render; alternate detail framing",
   "orbital-sunrise.jpg": "https://www.nasa.gov/image-article/sunrise-begins/",
   "smarttorque-enclosed-navy.png": "AI concept visualization based on supplied product and logo references; enclosed electronics, navy body, titanium finishes and side branding. Exterior concept, not the CAD assembly.",
-  "eva-tool-enclosed-navy.png": "AI EVA application concept render, revised to use the enclosed-electronics navy SmartTorque design and side-applied Gabbrotech logo. Not a real mission photograph."
+  "eva-tool-enclosed-navy.png": "AI EVA application concept render, revised to use the enclosed-electronics navy SmartTorque design and side-applied Gabbrotech logo. Not a real mission photograph.",
+  "smarttorque-integrated-display.png": "AI product concept render based on supplied SmartTorque reference. Display is integrated flush into the upper housing; no raised screen scaffold.",
+  "smarttorque-technician-use.png": "AI ground-based application concept showing a gloved technician using SmartTorque on a structural fixture. Not a NASA photograph or evidence of operational deployment. Display values are illustrative."
 }
