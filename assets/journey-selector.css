@@ -8,4 +8,5 @@
 .journey-card.is-active .journey-link{border-color:#9fe8f1}.journey-card:not(.is-active) .journey-link{opacity:.7}
 .journey-select-hint{margin:26px 24px 0;text-align:center;color:var(--muted);font-size:.72rem;letter-spacing:.04em}
 .journey-select-hint+.journey-controls{margin-top:18px}
+.journey-autoplay svg{display:block;width:20px;height:20px;margin:auto;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 @media(prefers-reduced-motion:reduce){.journey-track{scroll-behavior:auto}}

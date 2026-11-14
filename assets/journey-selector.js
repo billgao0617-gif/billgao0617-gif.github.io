@@ -41,5 +41,40 @@
  track.addEventListener('click',e=>{if(suppressClick){e.preventDefault();e.stopPropagation();}},true);
  window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>go(index,true),100);});
  window.addEventListener('site-language-change',()=>cards.forEach(card=>{const title=card.querySelector('h3').textContent;card.querySelector('[data-select-card]').setAttribute('aria-label',(window.siteLanguage?.()==='zh'?'选择 ':'Select ')+title);}));
- update();
+ // Idle playback travels to the end and back; manual input always takes priority.
+ const motionPreference=matchMedia('(prefers-reduced-motion: reduce)');
+ const controls=document.querySelector('.journey-controls');
+ const play=document.createElement('button');play.type='button';play.className='journey-autoplay';controls.append(play);
+ let paused=false,visible=false,direction=1,timer,idleUntil=0;
+ const pointers=new Set();
+ const keyboardReading=()=>track.contains(document.activeElement)&&document.activeElement.matches(':focus-visible');
+ function playLabel(){
+  const zh=window.siteLanguage?.()==='zh',stopped=paused||motionPreference.matches;
+  play.innerHTML=stopped?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 9 6-9 6Z"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg>';
+  play.setAttribute('aria-label',stopped?(zh?'播放自动轮播':'Play automatic scrolling'):(zh?'暂停自动轮播':'Pause automatic scrolling'));
+  play.title=play.getAttribute('aria-label');play.disabled=motionPreference.matches;
+ }
+ function schedule(){
+  clearTimeout(timer);
+  if(paused||motionPreference.matches||!visible||document.hidden||pointers.size||keyboardReading()||document.documentElement.classList.contains('welcome-active'))return;
+  timer=setTimeout(()=>{
+   if(index===cards.length-1)direction=-1;else if(index===0)direction=1;
+   go(index+direction);schedule();
+  },Math.max(4200,idleUntil-performance.now()));
+ }
+ function interact(){idleUntil=performance.now()+8000;clearTimeout(timer);schedule();}
+ for(const surface of [track,controls]){
+  surface.addEventListener('pointerdown',e=>{pointers.add(e.pointerId);track.scrollTo({left:track.scrollLeft,behavior:'instant'});interact();},{passive:true});
+  surface.addEventListener('wheel',interact,{passive:true});surface.addEventListener('keydown',interact);surface.addEventListener('click',interact);
+  surface.addEventListener('focusin',schedule);surface.addEventListener('focusout',()=>setTimeout(schedule,0));
+ }
+ const released=e=>{if(pointers.delete(e.pointerId))interact();};
+ window.addEventListener('pointerup',released,{passive:true});window.addEventListener('pointercancel',released,{passive:true});
+ play.addEventListener('click',()=>{paused=!paused;playLabel();schedule();});
+ new IntersectionObserver(entries=>{visible=entries[0].intersectionRatio>=.3;schedule();},{threshold:[0,.3]}).observe(track);
+ new MutationObserver(schedule).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)pointers.clear();schedule();});
+ motionPreference.addEventListener('change',()=>{playLabel();schedule();});
+ window.addEventListener('site-language-change',playLabel);
+ update();playLabel();schedule();
 })();
