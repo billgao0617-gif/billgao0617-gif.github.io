@@ -15,3 +15,5 @@
 .scene-tool-link{display:block;border:0;background:transparent;padding:0}
 .is-opening .scene-hero-media{opacity:0;transform:scale(1.04);transition:opacity .5s,transform .65s}.is-opening .scene-hero-copy{opacity:0;transition:opacity .4s}
 @media(prefers-reduced-motion:reduce){.is-opening .scene-hero-media,.is-opening .scene-hero-copy{transition:none;transform:none}}
+.scene-tool-label{left:65%;top:38%}
+@media(max-width:760px){.scene-hero-media{aspect-ratio:1672/941}.scene-tool-label{left:60%;top:29%}}
