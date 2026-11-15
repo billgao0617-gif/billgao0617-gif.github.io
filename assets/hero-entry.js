@@ -10,17 +10,8 @@
   const upperLength = distance(shoulder, restingElbow);
   const lowerLength = distance(restingElbow, restingWrist);
   const animations = [];
-  let ready = false, visible = true;
-
-  // Map a sleeve between its two projected joints. The perpendicular width stays constant.
-  function sleeve(start, end, targetStart, targetEnd) {
-    const angle = direction(start, end), targetAngle = direction(targetStart, targetEnd);
-    const scale = distance(targetStart, targetEnd) / distance(start, end);
-    const c = Math.cos(angle), s = Math.sin(angle), u = Math.cos(targetAngle), v = Math.sin(targetAngle);
-    const a = scale*u*c + v*s, b = scale*v*c - u*s;
-    const h = scale*u*s - v*c, k = scale*v*s + u*c;
-    return 'matrix(' + [a,b,h,k,targetStart[0]-a*start[0]-h*start[1],targetStart[1]-b*start[0]-k*start[1]].join(',') + ')';
-  }
+  let ready = false, visible = true, drawSleeve = null, tick = 0;
+  const grip = scene.querySelector('.hero-grip');
 
   // Choreograph the grip along a shallow lifting path, then solve for the moving elbow.
   // Projected sleeve lengths change slightly as the arm reaches out toward the camera.
@@ -36,39 +27,52 @@
     const elbow = [shoulder[0]+upper*Math.cos(angle),shoulder[1]+upper*Math.sin(angle)];
     const pitch = 52*r*r*(1+.15*t) - 1.1*Math.sin(Math.PI*t)**4;
     const grip = 'translate('+wrist[0]+'px,'+wrist[1]+'px) rotate('+pitch+'deg) translate(-831px,-779px)';
-    return [sleeve(shoulder,restingElbow,shoulder,elbow),sleeve(restingElbow,restingWrist,elbow,wrist),grip];
+    return {elbow,wrist,pitch,grip};
   }
 
-  const parts = ['.hero-shoulder','.hero-lift','.hero-grip'].map(selector => scene.querySelector(selector));
-  const poses = Array.from({length:49}, (_,i) => pose(i/48));
+  const duration = 2100;
+  const gripFrames = Array.from({length:65}, (_,i) => ({transform:pose(i/64).grip}));
+  function draw(time) {
+    const {elbow,wrist,pitch} = pose(time);
+    if (drawSleeve) drawSleeve(elbow,wrist,pitch);
+  }
+  function paint() {
+    if (!animations.length) return;
+    draw(Math.min(1,(animations[0].currentTime || 0)/duration));
+    if (visible && !document.hidden) tick = requestAnimationFrame(paint);
+  }
   function settle() {
+    cancelAnimationFrame(tick);
     for (const animation of animations.splice(0)) animation.cancel();
+    draw(1);
     scene.classList.add('hero-ready','hero-settled');
     scene.dataset.motion = 'settled';
-    replay.disabled = reducedMotion.matches;
+    replay.disabled = reducedMotion.matches || !drawSleeve;
   }
   function visibility() {
+    cancelAnimationFrame(tick);
     for (const animation of animations) {
       if (visible && !document.hidden) animation.play();
       else animation.pause();
     }
+    if (animations.length && visible && !document.hidden) paint();
   }
   function start() {
     if (!ready) return;
     settle();
-    if (reducedMotion.matches) return;
+    if (reducedMotion.matches || !drawSleeve) return;
     scene.classList.remove('hero-settled');
     replay.disabled = true;
     scene.dataset.motion = 'raising';
-    const timing = {duration:2100, fill:'both'};
-    parts.forEach((part,index) => animations.push(part.animate(poses.map(frame => ({transform:frame[index]})),timing)));
+    const timing = {duration, fill:'both'};
+    animations.push(grip.animate(gripFrames,timing));
     animations.push(scene.querySelector('.company-slogan').animate([
       {opacity:0,transform:'translateY(32px)'}, {opacity:1,transform:'translateY(0px)'}
     ],{...timing,easing:'cubic-bezier(.35,0,.24,1)'}));
     const startTime = document.timeline.currentTime;
     for (const animation of animations) animation.startTime = startTime;
     animations[0].onfinish = settle;
-    if (!visible || document.hidden) visibility();
+    if (!visible || document.hidden) visibility(); else paint();
   }
 
   new IntersectionObserver(([entry]) => {visible = entry.isIntersecting; visibility();}).observe(scene);
@@ -84,11 +88,21 @@
     }
   });
   document.querySelectorAll('[data-deferred-src]').forEach(image => deferred.observe(image));
-  Promise.all(['hero-earth.webp','hero-astronaut.webp','hero-arm.webp'].map(file => {
+  Promise.all(['hero-earth.webp','hero-astronaut.webp','hero-arm.webp','driver-mark.webp'].map(file => {
     const image = new Image();
     image.src = '/assets/editorial/' + file;
-    return image.decode();
-  })).then(() => {ready = true; performance.mark('smarttorque-hero-ready'); start();}).catch(() => {
+    return image.decode().then(() => image);
+  })).then(images => {
+    const canvas = scene.querySelector('.suit-sleeve');
+    try {drawSleeve = window.createSuitSleeve(canvas,images[2]);} catch {drawSleeve = null;}
+    scene.classList.toggle('hero-cloth-ready',Boolean(drawSleeve));
+    canvas.addEventListener('webglcontextlost',() => {
+      drawSleeve = null; scene.classList.remove('hero-cloth-ready'); settle();
+    });
+    ready = true;
+    performance.mark('smarttorque-hero-ready');
+    start();
+  }).catch(() => {
     scene.classList.add('hero-fallback');
     scene.dataset.motion = 'fallback';
     replay.hidden = true;
