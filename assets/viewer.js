@@ -8,9 +8,31 @@ const root = document.getElementById('model-viewer');
 if (root) {
   const $ = id => document.getElementById(id);
   const host = $('viewer-canvas'), loading = $('viewer-loading');
+  const inspectPanel = $('inspection-panel'), picker = $('head-picker'), headsButton = $('heads-button');
+  const explorer = root.closest('[data-explorer]');
+  function showPicker(open, returnFocus = false) {
+    picker.hidden = !open;
+    headsButton.setAttribute('aria-expanded', String(open));
+    if (open) picker.querySelector('[aria-pressed="true"]')?.focus();
+    if (returnFocus) headsButton.focus();
+  }
+  headsButton.addEventListener('click', () => showPicker(picker.hidden));
+  root.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !picker.hidden) { showPicker(false, true); event.preventDefault(); }
+  });
+  document.addEventListener('pointerdown', event => {
+    if (!picker.hidden && !picker.contains(event.target) && !headsButton.contains(event.target)) showPicker(false);
+  });
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(34, 1, .0001, 100);
-  const renderer = new THREE.WebGLRenderer({antialias:true,alpha:true});
+  const renderer = createRenderer();
+  function createRenderer() {
+    try { return new THREE.WebGLRenderer({antialias:true,alpha:true}); }
+    catch (error) {
+      loading.textContent = window.siteLanguage?.()==='zh' ? '此浏览器无法显示交互模型。下方可查看产品和接头。' : 'Interactive 3D is unavailable in this browser. Product and attachment details are below.';
+      throw error;
+    }
+  }
   renderer.setPixelRatio(Math.min(devicePixelRatio,2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -27,16 +49,35 @@ if (root) {
   const key = new THREE.DirectionalLight(0xffffff,3); key.position.set(1,2,3);scene.add(key);
   const rim = new THREE.DirectionalLight(0x91d8f5,2);rim.position.set(-2,1,-2);scene.add(rim);
   const controls = new OrbitControls(camera,renderer.domElement);
+  renderer.domElement.tabIndex=0;
+  function labelCanvas(){
+    renderer.domElement.setAttribute('aria-label',window.siteLanguage?.()==='zh'
+      ?'SmartTorque 交互模型。左右方向键旋转，上下方向键缩放。'
+      :'Interactive SmartTorque. Left and right arrows rotate. Up and down arrows zoom.');
+  }
+  labelCanvas();
+  window.addEventListener('site-language-change',labelCanvas);
+  renderer.domElement.addEventListener('keydown',event=>{
+    if (!ready || animation || !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)) return;
+    event.preventDefault();
+    const orbit=new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
+    if(event.key==='ArrowLeft'||event.key==='ArrowRight') orbit.theta+=(event.key==='ArrowLeft'?-1:1)*Math.PI/16;
+    else orbit.radius=THREE.MathUtils.clamp(orbit.radius*(event.key==='ArrowUp'?.9:1.1),controls.minDistance,controls.maxDistance);
+    camera.position.setFromSpherical(orbit).add(controls.target);controls.update();invalidate();
+  });
   controls.enableDamping=true;controls.dampingFactor=.09;controls.enablePan=true;controls.autoRotateSpeed=1.25;
   const model = new THREE.Group();
   // Flip the complete horizontal tool so its grip is below the powered body.
   model.rotation.set(Math.PI,0,-Math.PI/2);scene.add(model);
   const loader=new VRMLLoader(), fileCache=new Map();
-  let manifest,base=[],heads={},retention=[],parts=[],head='scissors',showRetention=true,exploded=false,selected=null,animation=null,selectionBoxes=[];
+  const handoff = new URLSearchParams(location.search).get('view') === 'operation';
+  let manifest,base=[],heads={},retention=[],parts=[],head='driver',showRetention=!handoff,exploded=false,selected=null,animation=null,selectionBoxes=[];
   let ready=false,scale=.3,assembledBounds,expandedBounds;
   let renderPending=false,dirty=true,listParts=null,listLanguage=-1;
   const materials=new Map();
-  let motionDirty=false,lastMotionUI=0;
+  const sideMark=new THREE.TextureLoader().load('/assets/gabbrotech-symbol.webp',()=>invalidate());
+  const bodyToDisplay=new THREE.Matrix4();
+  let motionDirty=false,lastMotionUI=0,actionLimit=0;
   const mechanism=new Mechanism(()=>{motionDirty=true;invalidate();});
   function invalidate(){dirty=true;if(!renderPending){renderPending=true;requestAnimationFrame(render);}}
   controls.addEventListener('change',invalidate);
@@ -80,10 +121,16 @@ if (root) {
     if(materials.has(kind))return materials.get(kind);
     const settings={metal:{color:0xb7c6cf,metalness:.88,roughness:.23},gold:{color:0xb5a377,metalness:.8,roughness:.27},sensor:{color:0x375466,metalness:.5,roughness:.31},pcb:{color:0x1a6357,metalness:.2,roughness:.39},screen:{color:0x0b2934,metalness:.35,roughness:.13},printed:{color:0x435966,metalness:.15,roughness:.5},carbon:{color:0x25313a,metalness:.26,roughness:.3}};
     const mat=new THREE.MeshStandardMaterial({...settings[kind],side:THREE.DoubleSide});
-    if(kind==='carbon')mat.onBeforeCompile=shader=>{
-      shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vCarbonPos;').replace('#include <begin_vertex>','#include <begin_vertex>\nvCarbonPos=position;');
-      shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vCarbonPos;').replace('#include <color_fragment>','#include <color_fragment>\nvec2 cell=vCarbonPos.xy*500.0; float weave=mod(floor(cell.x)+floor(cell.y),2.0);float filament=sin((weave<0.5?cell.x:cell.y)*18.8496);diffuseColor.rgb*=0.8+0.17*weave+0.06*filament;');
-    };materials.set(kind,mat);return mat;
+    if(kind==='carbon'){
+      mat.color.set(0x314c65);mat.metalness=.63;mat.roughness=.34;
+      mat.onBeforeCompile=shader=>{
+        shader.uniforms.bodyToDisplay={value:bodyToDisplay};
+        shader.uniforms.sideMark={value:sideMark};
+        shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 bodyPos;uniform mat4 bodyToDisplay;').replace('#include <begin_vertex>','#include <begin_vertex>\nbodyPos=(bodyToDisplay*vec4(position,1.)).xyz*1000.;');
+        shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 bodyPos;uniform sampler2D sideMark;').replace('#include <color_fragment>','#include <color_fragment>\nvec2 uv=(bodyPos.xy-vec2(-76.,-14.))/vec2(32.,28.4);if(bodyPos.z>19. && all(greaterThanEqual(uv,vec2(0.))) && all(lessThanEqual(uv,vec2(1.)))){vec4 ink=texture2D(sideMark,uv);diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.82,.88,.90),ink.a*(1.-smoothstep(.08,.92,ink.r)));}');
+      };
+    }
+    materials.set(kind,mat);return mat;
   }
   function swMatrix(a){if(!a)return new THREE.Matrix4();const s=a[12]||1;return new THREE.Matrix4().set(a[0]*s,a[3]*s,a[6]*s,a[9],a[1]*s,a[4]*s,a[7]*s,a[10],a[2]*s,a[5]*s,a[8]*s,a[11],0,0,0,1);}
   async function loadFile(url){if(!fileCache.has(url))fileCache.set(url,fetch(url).then(r=>{if(!r.ok)throw new Error(url);return r.text();}).then(text=>loader.parse(text,'')));return (await fileCache.get(url)).clone(true);}
@@ -106,12 +153,12 @@ if (root) {
     const dir=reset?defaultDirection:camera.position.clone().sub(controls.target).normalize();if(!dir.lengthSq())dir.copy(defaultDirection);
     const r=new THREE.Vector3().crossVectors(camera.up,dir).normalize(),u=new THREE.Vector3().crossVectors(dir,r).normalize();
     let w=0,h=0,depth=0;corners(bounds).forEach(p=>{p.sub(center);w=Math.max(w,Math.abs(p.dot(r)));h=Math.max(h,Math.abs(p.dot(u)));depth=Math.max(depth,Math.abs(p.dot(dir)));});
-    const rect=host.getBoundingClientRect(),inline=host.parentElement===voiceHost,mobile=rect.width<681,panel=inline||mobile?0:document.querySelector('.part-panel').getBoundingClientRect().width+55;
+    const rect=host.getBoundingClientRect(),inline=host.parentElement===voiceHost;
     if(!rect.width||!rect.height)return;
-    const usableW=inline?.96:Math.max(rect.width-panel-70,rect.width*.5)/rect.width,usableH=inline?.93:Math.max(rect.height-205,rect.height*.52)/rect.height;
+    const usableW=inline?.96:.90,usableH=inline?.93:.88;
     const vfov=THREE.MathUtils.degToRad(camera.fov*.5),hfov=Math.atan(Math.tan(vfov)*camera.aspect);
     const distance=Math.max(w/(Math.tan(hfov)*usableW),h/(Math.tan(vfov)*usableH)) * (inline?1.02:1.1)+depth;
-    camera.setViewOffset(rect.width,rect.height,panel*.5,inline?0:mobile?-25:-12,rect.width,rect.height);
+    camera.clearViewOffset();
     const position=center.clone().addScaledVector(dir,distance);
     if(transition&&animation){animation.cameraFrom=camera.position.clone();animation.cameraTo=position;animation.targetFrom=controls.target.clone();animation.targetTo=center;}
     else{controls.target.copy(center);camera.position.copy(position);}
@@ -177,7 +224,10 @@ if (root) {
     $('part-description').textContent=paired?t('The two electromagnets are inspected together as part of the locking and actuation hardware. Both original CAD components are highlighted, showing their separate mounting positions and relationship to the mechanical mechanism.','两个电磁铁共同作为锁止与执行结构的一部分进行查看。点击任意一个会同时高亮两件原始 CAD 零件，展示各自安装位置及其与机械机构的连接关系。'):selected?selected.description[index]:t('Choose a head, rotate the model, or open the assembly to inspect the real CAD components.','切换接头、旋转模型或展开装配体，点击查看真实 CAD 零件及其作用。');
     $('part-counter').textContent=`${selection.length?selection.map(part=>String(parts.indexOf(part)+1).padStart(2,'0')).join(' + '):'00'} / ${String(parts.length).padStart(2,'0')}`;
     $('viewer-state').textContent=exploded?t('EXPLODED','爆炸视图'):t('ASSEMBLED','装配状态');
-    $('explode-button').textContent=exploded?t('Reassemble','重新装配'):t('Explode view','展开视图');
+    $('explode-button').textContent=exploded?t('Reassemble','合上结构'):t('Inspect structure','查看结构');
+    $('explode-button').setAttribute('aria-expanded',String(exploded));
+    inspectPanel.hidden=!exploded;
+    explorer.dataset.inspecting=String(exploded);
     $('head-switcher-label').textContent=t('QUICK-CHANGE HEAD + MATCHED ADAPTER','快拆接头 + 专用打印适配件');
     const functions={scissors:['Cut suitable material · original scissor assembly and matched mounting adapter','剪切适用材料 · 装配体1原始剪切机构与配套安装件'],pliers:['Grip and manipulate components · matched printed mounting adapter','抓取与操作部件 · 配套打印安装件与电钻本体适配'],driver:['Turn compatible nuts · matched socket and quick-release adapter','旋拧兼容螺母 · 配套套筒与快拆适配件']};
     $('head-function').textContent=functions[head][index]+(showRetention?t(' · tether-ring fit visualization',' · 显示防丢失扣环适配'):'');
@@ -215,6 +265,8 @@ if (root) {
     const commonName=['电钻','固定头','快拆座'].find(name=>fullMain.some(p=>normalize(p.partName)===name)&&Object.values(heads).every(group=>group.some(p=>normalize(p.partName)===name)));
     if(!commonName)throw new Error('The supplied heads have no shared mounting reference with the body.');
     const anchor=fullMain.find(p=>normalize(p.partName)===commonName);
+    const drill=fullMain.find(p=>normalize(p.partName)==='电钻');
+    if(drill)bodyToDisplay.makeRotationFromEuler(model.rotation).multiply(swMatrix(drill.transform));
     Object.values(heads).forEach(group=>{const source=group.find(p=>normalize(p.partName)===commonName);const registration=swMatrix(anchor.transform).multiply(swMatrix(source.transform).invert());group.forEach(p=>{p.object.applyMatrix4(registration);p.start.copy(p.object.position);});});
     const core=part=>/^(电钻|编码|Arduino|语音|LCD|齿轮舵机座|力矩盘|舵机|盖板|电磁铁|M3x6\+6)/.test(part.partName);
     base=fullMain.filter(core);
@@ -235,8 +287,9 @@ if (root) {
   }
   function renderMotionUI(force=false){
     const now=performance.now();if(!force&&now-lastMotionUI<80)return;lastMotionUI=now;
-    const degrees=Math.round(mechanism.phase*180/Math.PI);
-    $('motion-play').textContent=mechanism.running?t('Pause operation','暂停演示'):t('Play operation','运行演示');$('motion-play').setAttribute('aria-pressed',String(mechanism.running));
+    const positionDegrees=mechanism.phase*180/Math.PI;
+    const degrees=mechanism.running?Math.floor(positionDegrees):Math.round(positionDegrees);
+    $('motion-play').textContent=mechanism.running?t('Pause','暂停动作'):t('Run action','运行动作');$('motion-play').setAttribute('aria-pressed',String(mechanism.running));
     $('motion-reset').textContent=t('Reset motion','复位动作');$('drive-label').textContent=t('Drag to drive the gear','拖动以驱动齿轮');
     $('drive-slider').value=String(degrees);$('drive-slider').setAttribute('aria-label',t('Drive gear angle','齿轮驱动角度'));$('drive-output').textContent=`${degrees}°`;
     $('motion-state').textContent=mechanism.running?t('RUNNING','运行中'):degrees?t('MANUAL','手动驱动'):t('READY','待演示');
@@ -273,24 +326,31 @@ if (root) {
     showHead(button.dataset.voiceHead);voiceFrom=voiceTo=voiceState?.phase||0;mechanism.setPhase(voiceTo);renderVoiceResponse();
     document.querySelectorAll('[data-voice-head]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
   }));
-  $('motion-play').addEventListener('click',()=>{if(!ready)return;voiceLinked=false;if(animation){animation=null;parts.forEach(p=>p.object.position.copy(p.start).addScaledVector(p.offset,exploded?1:0));frame(exploded?expandedBounds:assembledBounds);}mechanism.running?mechanism.stop():mechanism.play();renderMotionUI(true);});
+  $('motion-play').addEventListener('click',()=>{if(!ready)return;voiceLinked=false;if(animation){animation=null;parts.forEach(p=>p.object.position.copy(p.start).addScaledVector(p.offset,exploded?1:0));frame(exploded?expandedBounds:assembledBounds);}if(mechanism.running) {
+      mechanism.stop();
+    } else {
+      actionLimit = head === 'driver' ? Math.PI : Math.PI * 2;
+      if (mechanism.phase >= actionLimit || mechanism.phase < 0) mechanism.setPhase(0);
+      mechanism.play();
+    }
+    renderMotionUI(true);});
   $('motion-reset').addEventListener('click',()=>{voiceLinked=false;mechanism.reset();renderMotionUI(true);});
   $('drive-slider').addEventListener('input',e=>{voiceLinked=false;if(animation){animation=null;parts.forEach(p=>p.object.position.copy(p.start).addScaledVector(p.offset,exploded?1:0));frame(exploded?expandedBounds:assembledBounds);}mechanism.setPhase(Number(e.target.value)*Math.PI/180);renderMotionUI(true);});
   let down,moved=false,gearDrag=null;const ray=new THREE.Raycaster();
   function hitPart(e){const r=host.getBoundingClientRect();ray.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),camera);const hit=ray.intersectObject(model,true)[0];return hit?parts.find(p=>p.object.getObjectById(hit.object.id)):null;}
   renderer.domElement.addEventListener('pointerdown',e=>{
     controls.autoRotate=false;$('rotate-button').setAttribute('aria-pressed','false');down=[e.clientX,e.clientY];moved=false;
-    if(ready&&!animation&&e.button===0&&host.parentElement!==voiceHost){const part=hitPart(e);if(mechanism.isGear(part)){voiceLinked=false;mechanism.stop();select(part);controls.enabled=false;gearDrag={id:e.pointerId,x:e.clientX,y:e.clientY,phase:mechanism.phase,ratio:/舵机15齿/.test(part.partName)?-.5:1};renderer.domElement.setPointerCapture(e.pointerId);renderer.domElement.style.cursor='ew-resize';e.preventDefault();e.stopImmediatePropagation();}}
+    if(ready&&exploded&&!animation&&e.button===0&&host.parentElement!==voiceHost){const part=hitPart(e);if(mechanism.isGear(part)){voiceLinked=false;mechanism.stop();select(part);controls.enabled=false;gearDrag={id:e.pointerId,x:e.clientX,y:e.clientY,phase:mechanism.phase,ratio:/舵机15齿/.test(part.partName)?-.5:1};renderer.domElement.setPointerCapture(e.pointerId);renderer.domElement.style.cursor='ew-resize';e.preventDefault();e.stopImmediatePropagation();}}
   },true);
   renderer.domElement.addEventListener('pointermove',e=>{if(down&&Math.hypot(e.clientX-down[0],e.clientY-down[1])>5)moved=true;if(gearDrag&&e.pointerId===gearDrag.id){const phase=gearDrag.phase+((e.clientX-gearDrag.x)-(e.clientY-gearDrag.y))*.022*gearDrag.ratio;mechanism.setPhase((phase%(Math.PI*4)+Math.PI*4)%(Math.PI*4));renderMotionUI(true);e.preventDefault();}});
   function finishDrag(){if(gearDrag){gearDrag=null;controls.enabled=true;renderer.domElement.style.cursor='';down=null;invalidate();return true;}return false;}
   renderer.domElement.addEventListener('pointercancel',finishDrag);
   renderer.domElement.addEventListener('lostpointercapture',finishDrag);
-  renderer.domElement.addEventListener('pointerup',e=>{if(finishDrag())return;down=null;if(!ready||moved||e.button!==0)return;const part=hitPart(e);if(!part)return;if(host.parentElement===voiceHost){select(part);return;}if(!exploded){setExploded(true);return;}select(part);});
-  $('explode-button').addEventListener('click',()=>setExploded(!exploded));
+  renderer.domElement.addEventListener('pointerup',e=>{if(finishDrag())return;down=null;if(!ready||moved||e.button!==0)return;const part=hitPart(e);if(!part)return;if(host.parentElement===voiceHost){select(part);return;}if(exploded)select(part);});
+  $('explode-button').addEventListener('click',()=>{showPicker(false);setExploded(!exploded);});
   $('reset-button').addEventListener('click',()=>{controls.autoRotate=false;$('rotate-button').setAttribute('aria-pressed','false');setExploded(false,true);});
   $('rotate-button').addEventListener('click',()=>{controls.autoRotate=!controls.autoRotate;$('rotate-button').setAttribute('aria-pressed',String(controls.autoRotate));invalidate();});
-  document.querySelectorAll('[data-head]').forEach(b=>{b.disabled=true;b.addEventListener('click',()=>showHead(b.dataset.head));});
+  document.querySelectorAll('[data-head]').forEach(b=>{b.disabled=true;b.addEventListener('click',()=>{showHead(b.dataset.head);showPicker(false,true);});});
   $('retention-button').disabled=true;$('retention-button').addEventListener('click',()=>{showRetention=!showRetention;showHead(head);});
   window.addEventListener('site-language-change',renderInfo);
   window.addEventListener('site-theme-change',()=>{renderer.toneMappingExposure=document.documentElement.dataset.theme==='light'?.94:1.05;invalidate();});
@@ -320,13 +380,14 @@ if (root) {
     const voiceMoving=voiceLinked&&ready&&Math.abs(mechanism.phase-voiceTo)>.00001;
     if(voiceMoving&&!animation){mechanism.setPhase(THREE.MathUtils.lerp(voiceFrom,voiceTo,voiceProgress));if(voiceProgress===1)renderMotionUI(true);}
     const moving=mechanism.step(now);
+    if(moving && mechanism.phase >= actionLimit){mechanism.setPhase(actionLimit);renderMotionUI(true);}
     document.querySelector('.voice-motion-dial')?.style.setProperty('--motion-phase',`${mechanism.phase*180/Math.PI}deg`);
     if(motionDirty){motionDirty=false;renderMotionUI();dirty=true;}
     if(dirty||controlsChanged||controls.autoRotate){renderer.render(scene,camera);dirty=false;}
     if(animation||controls.autoRotate||controlsChanged||moving||voiceMoving)invalidate();
   }
   resize();invalidate();
-  (async()=>{manifest=await fetch('/assets/cad/manifest.json').then(r=>{if(!r.ok)throw new Error('CAD manifest unavailable');return r.json();});base=await Promise.all(manifest.main.map(loadPart));heads.scissors=base;heads.pliers=await Promise.all(manifest.pliers.map(loadPart));heads.driver=await Promise.all(manifest.driver.map(loadPart));retention=await Promise.all(manifest.retention.map(loadPart));alignHeads();fitRetention();ready=true;const requested=new URLSearchParams(location.search);showHead(['scissors','pliers','driver'].includes(requested.get('head'))?requested.get('head'):'scissors');const inspectionMap=new Map([['voice',/^语音/],['retention',/环扣/],['lcd',/^LCD/]]);const inspection=inspectionMap.get(requested.get('inspect'));if(inspection){const part=parts.find(p=>inspection.test(p.partName));if(part){setExploded(true);select(part);}}loading.hidden=true;document.querySelectorAll('[data-head],#retention-button,#explode-button,#reset-button,#motion-play,#motion-reset,#drive-slider').forEach(b=>b.disabled=false);window.applySiteLanguage?.();if(host.parentElement===voiceHost)assembleVoiceTool();renderInfo();renderVoiceResponse();window.dispatchEvent(new CustomEvent('cad-voice-ready'));console.info('SmartTorque authentic CAD loaded',{core:base.length,scissors:heads.scissors.length,pliers:heads.pliers.length,driver:heads.driver.length,retention:retention.length});})().catch(error=>{console.error('SmartTorque CAD load failed',error);loading.textContent=t('The CAD model could not load. Refresh to try again.','CAD 模型载入失败，请刷新后重试。');});
+  (async()=>{manifest=await fetch('/assets/cad/manifest.json').then(r=>{if(!r.ok)throw new Error('CAD manifest unavailable');return r.json();});base=await Promise.all(manifest.main.map(loadPart));heads.scissors=base;heads.pliers=await Promise.all(manifest.pliers.map(loadPart));heads.driver=await Promise.all(manifest.driver.map(loadPart));retention=await Promise.all(manifest.retention.map(loadPart));alignHeads();fitRetention();ready=true;const requested=new URLSearchParams(location.search);showHead(['scissors','pliers','driver'].includes(requested.get('head'))?requested.get('head'):'driver');if(handoff && head==='driver')mechanism.setPhase(Math.PI);const inspectionMap=new Map([['voice',/^语音/],['retention',/环扣/],['lcd',/^LCD/]]);const inspection=inspectionMap.get(requested.get('inspect'));if(inspection){const part=parts.find(p=>inspection.test(p.partName));if(part){setExploded(true);select(part);}}loading.hidden=true;$('cad-poster').hidden=true;document.querySelectorAll('#heads-button,[data-head],#retention-button,#explode-button,#reset-button,#motion-play,#motion-reset,#drive-slider').forEach(b=>b.disabled=false);window.applySiteLanguage?.();if(host.parentElement===voiceHost)assembleVoiceTool();renderInfo();renderVoiceResponse();window.dispatchEvent(new CustomEvent('cad-voice-ready'));console.info('SmartTorque authentic CAD loaded',{core:base.length,scissors:heads.scissors.length,pliers:heads.pliers.length,driver:heads.driver.length,retention:retention.length});})().catch(error=>{console.error('SmartTorque CAD load failed',error);loading.textContent=t('The CAD model could not load. Refresh to try again.','CAD 模型载入失败，请刷新后重试。');});
 }
 
 

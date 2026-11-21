@@ -1,8 +1,8 @@
 (() => {
   const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const localize=()=>{document.querySelectorAll('[data-en][data-zh]').forEach(e=>{e.textContent=e.dataset[window.siteLanguage?.()==='zh'?'zh':'en'];});if(/^\/(journey|about)\//.test(location.pathname)){const title=document.querySelector('main h1,main h2');if(title)document.title=title.textContent.replace(/\n/g,' ')+' | Gabbrotech';}};
+  const localize=()=>{document.querySelectorAll('[data-en][data-zh]').forEach(e=>{e.textContent=e.dataset[window.siteLanguage?.()==='zh'?'zh':'en'];});if(location.pathname==='/about/')document.title=(window.siteLanguage?.()==='zh'?'关于我们':'About Us')+' | Gabbrotech';if(/^\/journey\//.test(location.pathname)){const title=document.querySelector('main h1,main h2');if(title)document.title=title.textContent.replace(/\n/g,' ')+' | Gabbrotech';}};
   window.addEventListener('site-language-change',localize);window.addEventListener('site-theme-change',localize);localize();
-  if(location.pathname==='/'&&location.hash==='#our-journey')location.replace('/journey/');
+  if(location.pathname==='/'&&['#our-journey','#journey','#journey-selector'].includes(location.hash))location.replace('/journey/'+location.search);
   document.querySelectorAll('a[href="#architecture"],a[href="#metrics"]').forEach(a=>a.addEventListener('click',()=>{const target=document.querySelector(a.getAttribute('href'));if(target?.closest('details'))target.closest('details').open=true;}));
   const initialTarget=location.hash?document.getElementById(location.hash.slice(1)):null;if(initialTarget?.closest('details'))initialTarget.closest('details').open=true;
   const explorer=document.querySelector('[data-explorer]'),gateway=document.getElementById('tool-entry');
