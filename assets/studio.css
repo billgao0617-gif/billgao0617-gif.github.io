@@ -1,0 +1,197 @@
+@font-face {
+  font-family: Manrope; src: url("/assets/manrope-latin.woff2") format("woff2");
+  font-style: normal; font-weight: 200 800; font-display: optional;
+}
+:root {
+  --body: Manrope, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --display: var(--body);
+  --gutter: clamp(20px,5vw,100px);
+  --header-height: 68px;
+  --bg: #090f16; --bg2: #101b23; --text: #f1f5f7; --muted: #aab9c3;
+  --line: #2a3944; --cyan: #a4dce9;
+}
+html[data-theme="light"] {
+  --bg: #f5f7f8; --bg2: #e9eef1; --text: #16232f; --muted: #526673; --line: #c5d0d7;
+  --cyan: #24687a;
+}
+body, html[data-theme="light"] body { background: var(--bg) }
+body::before { content: none }
+html { scroll-padding-top: calc(var(--header-height) + 12px) }
+.site-header, html[data-theme="light"] .site-header {
+  background: var(--bg); border: 0; box-shadow: inset 0 -1px var(--line);
+}
+.site-header .nav {
+  width: min(calc(100% - 2 * var(--gutter)), 1730px); height: var(--header-height); min-height: 0;
+  display: grid; grid-template-columns: 1fr auto 1fr; gap: 30px;
+}
+.site-header .brand { width: max-content; font-size: 1.08rem; gap: 10px; letter-spacing: -.055em }
+.site-header .brand-mark { width: 32px; height: 32px }
+.site-header .brand-mark img { position: static; width: 100%; height: 100%; object-fit: contain }
+.site-header .nav-links { gap: clamp(22px,3vw,48px) }
+.site-header .nav-links a { color: var(--muted); font-weight: 550; font-size: .88rem; line-height: 1.4 }
+.site-header .nav-links a:hover,.site-header .nav-links a[aria-current] { color: var(--text) }
+.site-header .nav-links a[aria-current] { text-decoration: underline; text-underline-offset: 7px }
+.site-header .nav-actions { justify-self: end; gap: 8px }
+.site-header .display-controls { gap: 3px }
+.site-header .display-toggle, .site-header .menu-toggle {
+  width: auto; min-width: 40px; min-height: 40px; border: 0; border-radius: 100px;
+  color: var(--text); background: transparent; font-weight: 550;
+}
+.site-header .display-toggle:hover,.site-header .menu-toggle:hover { background: var(--bg2) }
+.site-header .theme-toggle { font-size: 1.12rem }
+.studio-footer {
+  width: min(calc(100% - 2 * var(--gutter)), 1540px); margin: auto;
+  display: grid; align-items: center; grid-template-columns: 1fr auto; gap: 22px;
+}
+.site-footer, html[data-theme="light"] .site-footer { background: var(--bg); padding: 38px 0 26px; border-top: 1px solid var(--line); color: var(--text) }
+.studio-footer .brand { font-size: 1.27rem; letter-spacing: -.06em }
+.studio-footer .footer-links { display: flex; gap: 20px; color: var(--muted); font-size: .86rem }
+.studio-colophon { grid-column: 1/-1; border-top: 1px solid var(--line); padding-top: 18px; display: flex; justify-content: space-between; gap: 14px; font-size: .75rem; color: var(--muted) }
+.studio-colophon a:hover,.footer-links a:hover { color: var(--text) }
+
+.product-story { background: #edf1f3; color: #172635; padding: clamp(64px,8vw,142px) var(--gutter); }
+.story-inner { max-width: 1440px; margin: auto; display: grid; grid-template-columns: minmax(235px,.76fr) 1.5fr; align-items: center; gap: clamp(34px,6vw,100px) }
+.product-notes h2,.journey-heading h2,.mission-field h2 {
+  font: 520 clamp(2.2rem,4.4vw,4.9rem)/1.05 var(--display); margin: 0; letter-spacing: -.062em;
+}
+.product-notes h2 { max-width: 10em; margin-bottom: clamp(27px,3.2vw,52px) }
+.feature-folds details { border-top: 1px solid #bbc7cd; margin: 0; padding: 0 }
+.feature-folds details:last-child { border-bottom: 1px solid #bbc7cd }
+.feature-folds summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  cursor: pointer; list-style: none; padding: 18px 0; color: #374d5b; font-weight: 550; font-size: clamp(1rem,1.3vw,1.25rem);
+}
+.feature-folds summary::-webkit-details-marker { display: none }
+.feature-folds details[open] summary { color: #142737 }
+.feature-plus { position: relative; width: 14px; height: 14px; flex: 0 0 14px }
+.feature-plus::before,.feature-plus::after { content: ""; position: absolute; top: 6px; left: 1px; width: 12px; height: 1.5px; background: currentColor }
+.feature-plus::after { transform: rotate(90deg) }
+details[open] > summary .feature-plus::after { transform: none }
+.feature-folds details p { margin: -2px 0 10px; color: #49606c; line-height: 1.6; font-size: .98rem }
+.feature-folds .action-link { display: inline-flex; font-size: .88rem; font-weight: 650; color: #215968; margin: 0 0 18px; text-decoration: underline; text-underline-offset: 5px }
+.product-story :focus-visible { outline: 2px solid #12627b; outline-offset: 4px }
+.product-study { margin: 0; position: relative; min-width: 0; padding: 0 2% 3% }
+.product-object { width: min(100%,790px); position: relative; margin: auto; aspect-ratio: 3/2 }
+.product-object > img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 20px 16px #38516326) }
+.product-point {
+  position: absolute; transform: translate(-50%,-50%); width: 38px; height: 38px; border: 0; background: transparent; cursor: pointer;
+}
+.product-point::before {
+  content: ""; display: block; position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  width: 11px; height: 11px; border-radius: 100%; background: #e7faff; box-shadow: 0 0 0 1px #244556,0 0 0 5px #c6f5fc40;
+}
+.point-display { left: 37%; top: 21% }
+.point-torque { left: 51.4%; top: 42% }
+.point-head { left: 89.5%; top: 47% }
+.product-point span {
+  position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  border-radius: 100px; background: #142734; color: white; padding: 5px 12px; white-space: nowrap;
+  font-size: .78rem; line-height: 1.5; opacity: 0; pointer-events: none;
+}
+.point-head span { left: auto; right: -5px; transform: none }
+.product-point[aria-pressed=true] span,.product-point:focus-visible span { opacity: 1 }
+.product-point[aria-pressed=true]::before { background: #bff9ff; box-shadow: 0 0 0 2px #214554,0 0 0 6px #92ebfa60 }
+.journey-entry { --card: min(72vw,890px); padding: clamp(60px,7.5vw,140px) 0; background: var(--bg) }
+.journey-heading { width: min(calc(100% - 2 * var(--gutter)),1440px); margin: 0 auto clamp(24px,3vw,48px); display: flex; justify-content: space-between; align-items: end; gap: 20px }
+.journey-heading p { margin: 12px 0 0; font-size: clamp(.97rem,1.4vw,1.2rem); color: var(--muted) }
+.journey-controls { margin: 0; gap: 10px; flex-shrink: 0 }
+.journey-controls button { width: 38px; height: 38px; font-size: .95rem }
+.journey-controls span { font-size: .75rem }
+.journey-track { gap: clamp(12px,1.6vw,24px); padding-inline: calc((100% - var(--card))/2) }
+.journey-card { flex: 0 0 var(--card); height: auto; min-height: 0; max-height: none; border-radius: 14px; aspect-ratio: 1.6; transform: none; opacity: .72; background: var(--bg2) }
+.journey-card.is-active { transform: none; opacity: 1 }
+.journey-card > img { position: absolute; inset: 0; object-position: center; transform: none }
+.journey-card:hover > img { transform: scale(1.015) }
+.journey-card::after { background: linear-gradient(0deg, #030b14eb 0%,#030b14a1 16%,transparent 48%) }
+.journey-card-copy { inset: auto clamp(20px,3vw,40px) 23px; display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: end }
+.journey-card-copy small { grid-column: 1/-1; font-size: .72rem; letter-spacing: .12em; color: #c2edf3 }
+.journey-card-copy h3 { margin: 0; max-width: none; font-weight: 550; font-size: clamp(1.45rem,3vw,3.15rem); letter-spacing: -.055em }
+.journey-card-copy .journey-link { min-height: 40px; padding: 8px 15px; border: 1px solid #ffffff75; border-radius: 100px; font-size: .85rem; background: #0d17255e; color: white; }
+.mission-field { position: relative; isolation: isolate; overflow: hidden; display: grid; align-items:center; min-height: clamp(350px,36vw,570px); background: #050b13; color: white }
+.mission-field .orbital-atmosphere { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 66% 47% }
+.mission-field::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg,#040c17f7 4%,#040c17b5 36%,#040c1725 68%); }
+.mission-words { margin-inline: var(--gutter); padding-block: 40px; max-width: 800px }
+.mission-words h2 { max-width: 11em; text-wrap: balance; color: #fafcff }
+.mission-symbols { display: flex; flex-wrap: wrap; gap: 14px 24px; margin: 25px 0 0 }
+.mission-symbols > div { display: flex; align-items: center; gap: 8px; font-size: .92rem; color: #e1edf5 }
+.mission-symbols svg { width: 22px; height: 22px; color: #c1ecf4 }
+.mission-words .action-link { display: inline-flex; margin-top: 28px; padding: 8px 0; font-size: .93rem; text-decoration: underline; text-underline-offset: 6px }
+
+.phase-page[data-journey-stage] { max-width: 1620px; padding: clamp(30px,4.8vw,92px) var(--gutter); gap: clamp(30px,4vw,70px); grid-template-columns: .75fr 1.25fr; min-height: min(820px,calc(100svh - var(--header-height))) }
+.phase-page .phase-image { aspect-ratio: 3/2; border-radius: 13px; background: var(--bg2) }
+.phase-page .phase-image figcaption { font-size: .76rem; padding: 24px 16px 12px }
+.phase-page .phase-copy h1 { font-size: clamp(2.25rem,3.5vw,4.2rem); line-height: 1.06; letter-spacing: -.06em; margin: 12px 0 15px }
+.phase-page .phase-lede { font-size: 1.03rem; line-height: 1.65; margin-block: 0 22px }
+.phase-page .phase-status { color: var(--muted); font-size: .82rem; letter-spacing: normal; margin: 0 0 12px }
+.phase-page .phase-focus { gap: 12px 20px; padding-block: 17px }
+.phase-page .page-back { margin-bottom: 22px; font-size: .88rem; text-decoration: underline; text-underline-offset: 5px }
+.phase-page .journey-swipe-controls { margin-top: 0; padding-top: 13px }
+.phase-page .swipe-caption,.phase-page .swipe-actions>span { font-size: .8rem }
+.phase-page .editorial-link { margin-top: 12px; padding: 6px 0 }
+.team-landing { padding-top: clamp(24px,3.5vw,64px); width: min(calc(100% - 2 * var(--gutter)),1540px) }
+.team-landing-heading h1, .product-direct .stage-intro h1 { font: 520 clamp(2.2rem,4vw,4.5rem)/1.08 var(--display); letter-spacing: -.06em }
+.team-landing .member-portrait { border: 0; border-radius: 10px; }
+.team-landing .member-info h3 { color: var(--muted); font-size: .95rem; line-height: 1.45; margin-bottom: 12px; min-height: 2.8em }
+.member-responsibilities summary { font-size: .83rem }
+.product-direct .product-stage { background: var(--bg); padding-top: clamp(20px,2.4vw,40px) }
+.product-direct .viewer-shell,.product-direct .voice-live,.product-direct .attachment-detail { border-radius: 12px; overflow: hidden }
+.product-direct .section-head h2 { font-weight: 520; letter-spacing: -.05em }
+.product-direct .stage-intro { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px 30px }
+.product-chapters { display: flex; flex-wrap: wrap; gap: 9px 20px }
+.product-chapters a { padding-block: 5px; color: var(--muted); font-size: .89rem; text-decoration: underline; text-underline-offset: 5px; text-decoration-color: var(--line) }
+.product-chapters a:hover { color: var(--text); text-decoration-color: currentColor }
+.product-guide .feature-folds { min-width: 0 }
+.product-guide .feature-folds details { border-color: var(--line) }
+.product-guide .feature-folds details summary { color: var(--text) }
+.product-guide .feature-folds details p { margin-bottom: 20px; color: var(--muted) }
+.product-guide .product-showcase figure { border-radius: 0; background: none }
+:lang(zh-CN) :is(.product-notes h2,.journey-heading h2,.journey-card-copy h3,.mission-words h2,.phase-copy h1,.team-landing-heading h1) { letter-spacing: -.025em; line-height: 1.16 }
+@media(max-width:900px) {
+  .phase-page[data-journey-stage] { grid-template-columns: 1fr 1fr }
+  .phase-page .phase-copy h1 { font-size: clamp(2.1rem,4.2vw,3rem) }
+}
+@media(max-width:720px) {
+  :root { --header-height: 58px; --gutter: 20px }
+  .site-header .nav { display: flex; justify-content: space-between; gap: 12px }
+  .site-header .nav-links { top: var(--header-height); gap: 0; padding: 8px 20px 14px; background: var(--bg) }
+  .site-header .nav-links a { padding-block: 12px; font-size: 1rem }
+  .site-header .brand-mark { width: 26px; height: 26px }
+  .site-header .brand { gap: 7px }
+  .story-inner { grid-template-columns: 1fr; gap: 0 }
+  .product-story { padding: 50px var(--gutter) 44px }
+  .product-notes { display: contents }
+  .product-notes h2 { order: 0; margin: 0; max-width: none }
+  .product-study { order: 1; padding: 12px 3% 8px; margin: 14px 0 18px }
+  .feature-folds { order: 2 }
+  .feature-folds summary { padding-block: 15px }
+  .journey-entry { --card: 86vw; padding: 46px 0 }
+  .journey-heading { align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 22px }
+  .journey-controls { gap: 7px }
+  .journey-controls button { width: 34px; height: 34px }
+  .journey-card { border-radius: 10px; aspect-ratio: 1.09 }
+  .journey-card-copy { grid-template-columns: 1fr; inset: auto 17px 16px; gap: 6px }
+  .journey-card-copy .journey-link { min-height: 32px; padding: 4px 11px }
+  .journey-card::after { background: linear-gradient(0deg,#030b14f0,#030b1460 37%,transparent 60%) }
+  .mission-words { padding-block: 35px }
+  .mission-symbols { gap: 10px 16px }
+  .mission-symbols > div { font-size: .83rem }
+  .mission-field { min-height: 300px }
+  .phase-page[data-journey-stage] { grid-template-columns: 1fr; min-height: 0; gap: 24px }
+  .phase-page .phase-copy { display: contents }
+  .phase-page .page-back,.phase-page .editorial-kicker,.phase-page h1,.phase-page .phase-lede,.phase-page .phase-status,.phase-page .phase-focus,.phase-page .editorial-link { margin: 0 }
+  .phase-page .page-back { order: 0; padding: 3px 0 }
+  .phase-page .editorial-kicker { order: 1; margin-bottom: -15px }
+  .phase-page .phase-copy h1 { order: 2; margin: 0 }
+  .phase-page .phase-image { order: 3 }
+  .phase-page .journey-swipe-controls { order: 4; margin-top: -10px; border: 0 }
+  .phase-page .phase-lede { order: 5 }
+  .phase-page .phase-status { order: 6; margin-bottom: -16px }
+  .phase-page .phase-focus { order: 7 }
+  .phase-page .editorial-link { order: 8; justify-self: start }
+  .team-landing .member-info h3 { font-size: .74rem }
+  .team-landing .member-responsibilities summary { font-size: .71rem }
+  .studio-footer { grid-template-columns: 1fr }
+  .studio-footer .footer-links { flex-direction: row; flex-wrap: wrap; gap: 16px }
+  .studio-colophon { flex-direction: column; gap: 5px }
+}
+@media(prefers-reduced-motion:reduce) { .journey-card, .journey-card>img { transition:none } }

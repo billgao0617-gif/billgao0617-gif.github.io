@@ -16,8 +16,8 @@ const stages = [
       "zh": "当前研发重点"
     },
     "focus": "<div><svg viewbox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"24\" cy=\"24\" r=\"8\"></circle><path d=\"m20 5 8 0 2 6 6 3 6-1 4 7-4 5 0 6-6 2-3 6-7 0-3-5-6-2-5 3-5-6 3-6-1-6-5-4 4-7 6 1Z\"></path></svg><span data-i18n-skip data-en=\"Modular prototype\" data-zh=\"模块化原型\">Modular prototype</span></div><div><svg viewbox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M24 4 42 11v12c0 11-8 18-18 22C14 41 6 34 6 23V11Z\"></path><path d=\"m15 24 6 6 13-15\"></path></svg><span data-i18n-skip data-en=\"Gloved operation\" data-zh=\"戴手套操作\">Gloved operation</span></div><div><svg viewbox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"24\" cy=\"24\" r=\"15\"></circle><circle cx=\"24\" cy=\"24\" r=\"6\"></circle><path d=\"M24 3v10m0 22v10M3 24h10m22 0h10\"></path></svg><span data-i18n-skip data-en=\"Control accuracy\" data-zh=\"控制精度\">Control accuracy</span></div>",
-    "image": "/assets/editorial/space-1.jpg",
-    "alt": "NASA contextual image of Ground Research & Prototyping"
+    "image": "/assets/editorial/journey-ground-studio.webp",
+    "alt": "SmartTorque on a prototype workbench", "altZh": "实验台上的 SmartTorque 原型概念图"
   },
   {
     "slug": "validation",
@@ -35,8 +35,8 @@ const stages = [
       "zh": "下一阶段规划"
     },
     "focus": "<div><svg viewbox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"24\" cy=\"24\" r=\"8\"></circle><path d=\"m20 5 8 0 2 6 6 3 6-1 4 7-4 5 0 6-6 2-3 6-7 0-3-5-6-2-5 3-5-6 3-6-1-6-5-4 4-7 6 1Z\"></path></svg><span data-i18n-skip data-en=\"Reliability testing\" data-zh=\"可靠性测试\">Reliability testing</span></div><div><svg viewbox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M24 4 42 11v12c0 11-8 18-18 22C14 41 6 34 6 23V11Z\"></path><path d=\"m15 24 6 6 13-15\"></path></svg><span data-i18n-skip data-en=\"Environmental evaluation\" data-zh=\"环境评估\">Environmental evaluation</span></div><div><svg viewbox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"24\" cy=\"24\" r=\"15\"></circle><circle cx=\"24\" cy=\"24\" r=\"6\"></circle><path d=\"M24 3v10m0 22v10M3 24h10m22 0h10\"></path></svg><span data-i18n-skip data-en=\"Joint development\" data-zh=\"协同开发\">Joint development</span></div>",
-    "image": "/assets/editorial/space-2.jpg",
-    "alt": "NASA contextual image of Engineering Validation & Joint Development"
+    "image": "/assets/editorial/journey-validation-studio.webp",
+    "alt": "SmartTorque mounted in an engineering test fixture", "altZh": "夹具中的 SmartTorque 工程验证概念图"
   },
   {
     "slug": "missions",
@@ -54,8 +54,8 @@ const stages = [
       "zh": "长期目标"
     },
     "focus": "<div><svg viewbox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"24\" cy=\"24\" r=\"8\"></circle><path d=\"m20 5 8 0 2 6 6 3 6-1 4 7-4 5 0 6-6 2-3 6-7 0-3-5-6-2-5 3-5-6 3-6-1-6-5-4 4-7 6 1Z\"></path></svg><span data-i18n-skip data-en=\"Qualification\" data-zh=\"鉴定与验收\">Qualification</span></div><div><svg viewbox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M24 4 42 11v12c0 11-8 18-18 22C14 41 6 34 6 23V11Z\"></path><path d=\"m15 24 6 6 13-15\"></path></svg><span data-i18n-skip data-en=\"Mission-specific interfaces\" data-zh=\"任务接口适配\">Mission-specific interfaces</span></div><div><svg viewbox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"24\" cy=\"24\" r=\"15\"></circle><circle cx=\"24\" cy=\"24\" r=\"6\"></circle><path d=\"M24 3v10m0 22v10M3 24h10m22 0h10\"></path></svg><span data-i18n-skip data-en=\"System integration\" data-zh=\"系统集成\">System integration</span></div>",
-    "image": "/assets/editorial/space-3.jpg",
-    "alt": "NASA contextual image of Mission Integration & Expanded Applications"
+    "image": "/assets/editorial/journey-mission-studio.webp",
+    "alt": "SmartTorque in a proposed EVA application", "altZh": "SmartTorque 舱外作业概念图"
   }
 ];
 const page = document.querySelector('[data-journey-stage]');
@@ -95,7 +95,7 @@ function go(index, historyUpdate = true, animate = true) {
   focus.querySelectorAll('[data-en][data-zh]').forEach(el => { el.textContent = el.dataset[language()]; });
   kicker.textContent = `${stage.label} / 0${index + 1}`;
   if (photo.getAttribute('src') !== stage.image) photo.src = stage.image;
-  photo.alt = language() === 'zh' ? `NASA 场景参考：${stage.title.zh}` : stage.alt;
+  photo.alt = language() === 'zh' ? stage.altZh : stage.alt;
   document.title = `${stage.title[language()]} | Gabbrotech`;
   document.querySelector('meta[name="description"]').content = stage.description[language()];
   controls.querySelector('[data-stage-count]').textContent = `0${index + 1} / 03`;

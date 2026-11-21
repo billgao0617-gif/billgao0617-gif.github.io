@@ -1,92 +1,104 @@
 (() => {
   const scene = document.querySelector('[data-hero-entry]');
   if (!scene) return;
-
-  const video = scene.querySelector('.hero-video');
-  const still = scene.querySelector('.hero-first-frame');
-  const slogan = scene.querySelector('.company-slogan');
+  const video = scene.querySelector('video');
+  const picture = scene.querySelector('picture');
+  const poster = picture.querySelector('img');
+  const sources = [...picture.querySelectorAll('source[data-motion-source]')];
+  const portrait = matchMedia('(max-width: 760px) and (max-aspect-ratio: 4/5)');
+  const overlay = scene.querySelector('.hero-tool-overlay');
   const replay = scene.querySelector('[data-hero-replay]');
-  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-  const startFrame = still.src;
-  const endFrame = scene.querySelector('.hero-shot source').srcset;
-  let previewAnimation, tick, visible = true, playing = false, requested = false;
+  const motion = matchMedia('(prefers-reduced-motion: reduce)');
+  let run = 0, frame, watchdog, active = false, onScreen = true;
 
-  function settle(useStill = false) {
-    requested = playing = false;
-    cancelAnimationFrame(tick);
+  function cancelFrame() {
+    if (frame == null) return;
+    if (video.cancelVideoFrameCallback) video.cancelVideoFrameCallback(frame);
+    else cancelAnimationFrame(frame);
+    frame = null;
+  }
+  function finish() {
+    active = false;
+    clearTimeout(watchdog);
+    cancelFrame();
+    scene.style.setProperty('--slogan-progress', '1');
+    scene.dataset.motion = 'settled';
+    scene.classList.add('hero-settled');
+    replay.disabled = motion.matches || Boolean(video.error);
+  }
+  async function useFinalStill(id) {
+    if (id !== run) return;
+    active = false;
+    clearTimeout(watchdog);
+    cancelFrame();
     video.pause();
-    previewAnimation?.cancel();
-    if (useStill) {
-      still.src = endFrame;
+    const image = new Image();
+    image.src = portrait.matches ? picture.dataset.portraitFinal : picture.dataset.final;
+    try { await image.decode(); } catch { /* Keep the last available media. */ }
+    if (id !== run) return;
+    if (image.naturalWidth) {
+      sources.forEach(source => { source.media = 'not all'; });
+      try { await poster.decode(); } catch {}
+      if (id !== run) return;
       scene.classList.remove('hero-video-visible');
     }
-    scene.classList.add('hero-settled');
-    scene.dataset.motion = 'settled';
-    replay.disabled = reducedMotion.matches || Boolean(video.error);
-    document.documentElement.classList.remove('hero-entry-enabled');
+    finish();
   }
-
-  function syncSlogan() {
-    if (!playing) return;
-    previewAnimation.currentTime = 1000 * Math.min(1, video.currentTime / video.duration);
-    tick = requestAnimationFrame(syncSlogan);
+  function tick(id) {
+    const painted = (_time, metadata) => {
+      if (id !== run || !active) return;
+      const time = metadata?.mediaTime ?? video.currentTime;
+      if (video.readyState >= 2 && (metadata || time > 0)) {
+        clearTimeout(watchdog);
+        scene.classList.add('hero-video-visible');
+        scene.dataset.motion = 'raising';
+        const p = Math.min(1, time / video.duration) || 0;
+        scene.style.setProperty('--slogan-progress', String(p * p * (3 - 2 * p)));
+      }
+      tick(id);
+    };
+    frame = video.requestVideoFrameCallback
+      ? video.requestVideoFrameCallback(painted)
+      : requestAnimationFrame(painted);
   }
-
-  async function play() {
-    if (reducedMotion.matches || video.error) return settle(true);
-    requested = true;
-    try {
-      await video.play();
-    } catch {
-      if (requested && visible && !document.hidden) settle(true);
+  function updatePlayback() {
+    if (!active) return;
+    clearTimeout(watchdog);
+    if (document.hidden || !onScreen) { video.pause(); return; }
+    const id = run;
+    if (!scene.classList.contains('hero-video-visible')) {
+      watchdog = setTimeout(() => useFinalStill(id), 6500);
     }
+    video.play().catch(error => {
+      if (error.name !== 'AbortError' && active && id === run) useFinalStill(id);
+    });
   }
-
-  function updateVisibility() {
-    if (!requested || video.ended) return;
-    if (visible && !document.hidden) play();
-    else video.pause();
-  }
-
-  video.addEventListener('playing', () => {
-    if (!requested) return;
-    if (!previewAnimation || previewAnimation.playState === 'idle') {
-      previewAnimation = slogan.animate(
-        [{opacity:0, transform:'translateY(32px)'},{opacity:1, transform:'translateY(0)'}],
-        {duration:1000, easing:'cubic-bezier(.35,0,.24,1)', fill:'both'}
-      );
-      previewAnimation.pause();
-    }
-    if (playing) return;
-    playing = true;
-    scene.classList.add('hero-video-visible');
-    scene.dataset.motion = 'raising';
-    syncSlogan();
-  });
-  video.addEventListener('ended', () => settle());
-  video.addEventListener('error', () => settle(true));
-
-  replay.addEventListener('click', () => {
+  function start() {
+    const id = ++run;
+    cancelFrame();
     replay.disabled = true;
-    still.src = startFrame;
-    scene.classList.remove('hero-settled');
-    video.currentTime = 0;
-    play();
-  });
-
-  new IntersectionObserver(([entry]) => {
-    visible = entry.isIntersecting;
-    updateVisibility();
-  }).observe(scene);
-  document.addEventListener('visibilitychange', updateVisibility);
-  reducedMotion.addEventListener('change', () => {
-    if (reducedMotion.matches) settle(true);
-    else replay.disabled = Boolean(video.error);
-  });
-
-  if (reducedMotion.matches || video.error) settle(true);
-  else {
-    requested = true;
-    updateVisibility();
+    overlay.setAttribute('viewBox', portrait.matches ? '957.64 0 766.72 1198' : '144 190 2350 940');
+    if (motion.matches || video.error) { useFinalStill(id); return; }
+    active = true;
+    scene.dataset.motion = 'loading';
+    scene.style.setProperty('--slogan-progress', '0');
+    scene.classList.remove('hero-settled', 'hero-video-visible');
+    sources.forEach(source => { source.media = source.dataset.motionSource; });
+    const file = portrait.matches ? video.dataset.portraitSrc : video.dataset.src;
+    if (video.getAttribute('src') !== file) video.src = file;
+    else video.currentTime = 0;
+    tick(id);
+    updatePlayback();
   }
+  video.addEventListener('ended', () => { if (active) finish(); });
+  video.addEventListener('error', () => useFinalStill(run));
+  replay.addEventListener('click', start);
+  motion.addEventListener('change', () => motion.matches ? useFinalStill(++run) : start());
+  portrait.addEventListener('change', start);
+  document.addEventListener('visibilitychange', updatePlayback);
+  new IntersectionObserver(([entry]) => {
+    onScreen = entry.isIntersecting;
+    updatePlayback();
+  }).observe(scene);
+  start();
 })();

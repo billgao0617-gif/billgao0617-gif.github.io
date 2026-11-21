@@ -1,79 +1,117 @@
-.home-experience .scene-hero{background:#030a13;min-height:620px}
-.hero-entry-media{position:absolute;inset:0;overflow:hidden}
-.hero-entry-media::after{
-  background:linear-gradient(90deg,#030a1370,transparent 60%);
-  pointer-events:none
+/* One coordinate space for the photographic plate, motion and final tool hit target. */
+.scene-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  height: calc(100svh - var(--header-height));
+  min-height: 470px;
+  color: #f8fbff;
+  background: #050b14;
 }
-.hero-shot{
-  position:absolute;right:0;bottom:0;height:100%;aspect-ratio:16/9;
+.hero-entry-media { position: absolute; inset: 0; overflow: hidden; container-type: size }
+.hero-shot {
+  position: absolute;
+  width: max(100cqw, 250cqh);
+  aspect-ratio: 5/2;
+  left: 50%; top: 50%; transform: translate(-50%, -50%);
 }
-.hero-shot picture,.hero-shot img,.hero-video,.hero-tool-overlay{
-  position:absolute;inset:0;display:block;width:100%;height:100%;
+.hero-shot picture, .hero-shot img, .hero-video, .hero-tool-overlay {
+  position: absolute; inset: 0; display: block; width: 100%; height: 100%;
 }
-.hero-shot picture,.hero-video{mask-image:linear-gradient(90deg,transparent,#000 14%)}
-.hero-video{visibility:hidden;pointer-events:none}
-.hero-video-visible .hero-video{visibility:visible}
-.hero-video-visible .hero-shot picture{visibility:hidden}
-.hero-tool-overlay{z-index:1;pointer-events:none;visibility:hidden;transition:opacity .25s;opacity:0}
-.hero-settled .hero-tool-overlay{visibility:visible;opacity:1}
-.hero-tool-outline{
-  fill:#42dff409;stroke:#a7f7ff;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round;
-  vector-effect:non-scaling-stroke;pointer-events:visiblePainted;cursor:pointer;
-  filter:drop-shadow(0 0 3px #12dfff) drop-shadow(0 0 7px #13bfff9c)
+.hero-video { opacity: 0; pointer-events: none }
+.hero-video-visible .hero-video { opacity: 1 }
+.hero-entry-media::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgb(2 8 16 / .78), rgb(2 8 16 / .34) 26%, transparent 47%),
+    linear-gradient(0deg,#050b148c,transparent 16%);
 }
-.hero-tool-target:hover .hero-tool-outline,.hero-tool-target:focus-visible .hero-tool-outline{
-  stroke:white;stroke-width:3;fill:#41ddff1b
+.hero-tool-overlay { z-index: 1; pointer-events: none; visibility: hidden; opacity: 0; transition: opacity .25s ease }
+.hero-settled .hero-tool-overlay { visibility: visible; opacity: 1 }
+.hero-tool-outline {
+  fill: transparent; stroke: #adf3ff; stroke-width: 1.35; stroke-linejoin: round;
+  vector-effect: non-scaling-stroke; pointer-events: visiblePainted; cursor: pointer;
+  filter: drop-shadow(0 0 3px #46d0f6);
 }
-.hero-tool-target:focus-visible{outline:none}
-.hero-model-link{
-  position:absolute;z-index:2;right:5%;top:41%;border:1px solid #9feaf1;
-  background:#071017d9;color:#d1faff;padding:10px 15px;font-size:.75rem;
-  box-shadow:0 0 13px #18d9ff32;visibility:hidden
+.hero-tool-target:hover .hero-tool-outline, .hero-tool-target:focus-visible .hero-tool-outline {
+  fill: #76e1fe18; stroke: white; stroke-width: 2.2;
 }
-.hero-settled .hero-model-link{visibility:visible}
-.hero-replay{
-  position:absolute;z-index:3;right:28px;bottom:20px;display:flex;align-items:center;gap:9px;
-  border:0;background:#071017b8;color:#d5ebf2;padding:8px 12px;
-  font:400 .68rem var(--body);cursor:pointer
+.scene-hero-copy {
+  position: absolute; z-index: 2; left: var(--gutter); top: 36%; transform: translateY(-50%);
+  pointer-events: none; max-width: 34%;
 }
-.hero-replay:disabled{visibility:hidden}
-.hero-replay:hover{color:#9fe8f1}
-.hero-replay>span:first-child{font-size:1.1rem}
-.home-experience .scene-hero-copy{top:15%;width:41%;max-width:580px}
-.home-experience .scene-hero-copy .company-slogan{font-size:clamp(2.8rem,4.9vw,5.5rem)}
-html.hero-entry-enabled [data-motion="loading"] .company-slogan{opacity:0}
-.home-experience .site-header .brand-mark{animation:brand-arrival .7s ease-out both}
-@keyframes brand-arrival{from{opacity:.4;transform:translateY(7px)}to{opacity:1;transform:none}}
-.home-experience .scene-hero::after{
-  content:"";position:absolute;inset:auto 0 -1px;height:clamp(50px,7vh,90px);
-  background:linear-gradient(to bottom,transparent,color-mix(in srgb,var(--bg) 60%,transparent) 70%,var(--bg));
-  pointer-events:none;z-index:1
+.scene-hero-copy .hero-product-name { margin: 0 0 14px; font-weight: 650; font-size: clamp(1.15rem,1.65vw,1.85rem); letter-spacing: -.045em; color: #d5eaf0 }
+.company-slogan {
+  margin: 0; font: 550 clamp(2.4rem,4.25vw,5.9rem)/1.025 var(--display);
+  letter-spacing: -.06em; text-wrap: nowrap;
 }
-.home-experience .scene-concept-caption{
-  color:#ddedf4;background:#071017ae;border-radius:3px;padding:4px 7px
+.company-slogan span { display: block }
+.scene-hero-copy .company-slogan span:last-child { color: #f7fbff }
+@media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+  [data-hero-entry] .company-slogan {
+    opacity: calc(.16 + .84 * var(--slogan-progress, 0));
+    transform: translateY(calc((1 - var(--slogan-progress, 0)) * 12px));
+  }
 }
-@media(min-width:761px) and (max-aspect-ratio:4/3){
-  .home-experience .scene-hero-copy{top:8%;width:65%;max-width:650px}
-  .home-experience .scene-hero-copy .company-slogan{font-size:clamp(3rem,5.5vw,5rem)}
-  .hero-shot{height:80%}
-  .hero-shot picture,.hero-video{mask-image:linear-gradient(180deg,transparent,#000 12%)}
+.scene-hero-copy .action-link {
+  display: inline-flex; align-items: center; border-radius: 100px;
+  background: #ecf9ff; color: #10202b; padding: 11px 22px; margin-top: clamp(18px,2.5vw,35px);
+  font-size: .94rem; font-weight: 650; pointer-events: auto;
 }
-@media(max-width:760px){
-  .home-experience .scene-hero{display:block;height:calc(100svh - var(--scene-header-height,70px));min-height:710px}
-  .hero-entry-media{position:absolute;inset:0;aspect-ratio:auto}
-  .hero-entry-media::after{background:none}
-  .hero-shot{width:clamp(530px,158vw,760px);height:auto}
-  .hero-shot picture,.hero-video{mask-image:linear-gradient(180deg,transparent,#000 10%)}
-  .home-experience .scene-hero-copy{position:relative;top:auto;left:auto;width:100%;max-width:none;padding:28px 24px 0}
-  .home-experience .scene-hero-copy .company-slogan{font-size:clamp(2.6rem,10vw,4rem);margin:16px 0}
-  .home-experience .scene-hero-copy p{max-width:290px;line-height:1.55;font-size:.86rem;margin-bottom:0}
-  .home-experience .scene-hero-copy .editorial-link{margin-top:8px;font-size:.82rem;padding:9px 0}
-  .hero-model-link{right:12px;top:39%;font-size:.62rem;padding:6px 9px}
-  .home-experience .scene-concept-caption{position:absolute;left:15px;bottom:13px;font-size:.55rem}
-  .hero-replay{right:12px;bottom:10px;font-size:.6rem}
+.scene-hero-copy .action-link:hover { background: #b9edff }
+.scene-concept-caption, .hero-replay { position: absolute; z-index: 2; bottom: 21px; color: #eff7fb }
+.scene-concept-caption { left: var(--gutter); font-size: .75rem; text-shadow: 0 1px 5px #071017 }
+.hero-replay {
+  right: var(--gutter); display: inline-flex; align-items: center; gap: 8px;
+  min-height: 40px; border: 1px solid #ffffff50; border-radius: 32px; padding: 5px 15px;
+  background: #081522b5; font-size: .8rem; cursor: pointer;
 }
-@media(prefers-reduced-motion:reduce){
-  html.hero-entry-enabled [data-motion="loading"] .company-slogan{opacity:1}
-  .hero-replay{display:none}
-  .hero-tool-overlay,.home-experience .site-header .brand-mark{transition:none;animation:none}
+.hero-replay:disabled { visibility: hidden }
+.hero-replay span:first-child { font-size: 1.08rem }
+@media(max-width:760px), (max-aspect-ratio:1/1) {
+  .scene-hero { min-height: 580px; max-height: 1150px }
+  .scene-hero-copy {
+    left: 0; right: 0; top: 0; max-width: none; transform: none; text-align: center;
+    padding: clamp(16px,3svh,38px) 16px 0;
+  }
+  .scene-hero-copy .hero-product-name { margin-bottom: 6px; font-size: 1rem }
+  .company-slogan { font-size: clamp(2rem,8.8vw,4rem) }
+  .company-slogan span { display: inline }
+  .scene-hero-copy .action-link { font-size: .85rem; margin-top: 13px; padding: 8px 17px }
+  .hero-shot {
+    width: min(408vw, 250cqh); left: 50%; top: auto; bottom: 0;
+    transform: translateX(-50%);
+  }
+  .hero-entry-media::after {
+    background: linear-gradient(0deg,#050b1494,transparent 13%);
+  }
+  .hero-shot::after {
+    content: ""; position: absolute; inset: -1px 0 auto; height: 21%; z-index: 1; pointer-events: none;
+    background: linear-gradient(#050b14 2%, transparent);
+  }
+  .scene-hero-copy { text-shadow: 0 2px 14px #020911 }
+  .scene-hero-copy .action-link { text-shadow: none }
+  .hero-replay,.scene-concept-caption { bottom: 14px }
 }
+@media(max-width:500px){.company-slogan span{display:block}}
+@media(max-width:760px) and (max-aspect-ratio:4/5) {
+  .hero-shot {
+    aspect-ratio: 16/25; width: min(134cqw, max(100cqw, 64cqh));
+    top: 0; bottom: auto; transform: translateX(-50%);
+  }
+  .hero-shot::after {
+    inset: auto 0 -1px; height: 24%;
+    background: linear-gradient(transparent, #050b14);
+  }
+  .hero-entry-media::after {
+    background: linear-gradient(0deg,#050b14 0%,#050b14a8 20%,transparent 39%);
+  }
+  .scene-hero-copy {
+    inset: auto var(--gutter) 57px; text-align: left; padding: 0;
+  }
+  .scene-hero-copy .hero-product-name { color: #cce6ee; margin-bottom: 6px }
+  .scene-hero-copy .company-slogan { font-size: clamp(2rem,9vw,3.6rem) }
+  .scene-hero-copy .action-link { margin-top: 12px }
+  .scene-concept-caption { font-size: .68rem }
+}
+@media(max-width:760px) and (orientation:landscape){.scene-hero{min-height:420px}.scene-hero-copy{max-width:32%;text-align:left}.hero-shot{width:max(100cqw,250cqh)}}
+@media(prefers-reduced-motion:reduce){.hero-tool-overlay{transition:none}.hero-replay{display:none}}
