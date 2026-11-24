@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { cloneCadPart, isBodyPart, loadCadManifest, solidWorksMatrix } from './cad-assets.js?v=8d65b9b8b487';
+import { cloneCadPart, isBodyPart, loadCadManifest, solidWorksMatrix } from './cad-assets.js?v=adb15ad71e35';
 import { addCommercialHousing, brushedMetal, deckShoulder, displayFit, makeBodyFinish, makeStudioEnvironment, roundedDeck } from './smarttorque-story-finish.js?v=b0f44731fe7f';
 
 const orientation = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI, 0, -Math.PI / 2));
@@ -571,8 +571,11 @@ export async function buildJourneyScene(host) {
         const release = ease(phase,21.16,21.72);
         const mobile = width < 580;
         const drawing = frame.drawingView ?? 0;
-        const yaw = lerp(lerp(lerp(lerp(lerp(.30,0,drawing),.23,intoBench),.48,frame.chamber),.55,intoFit),2.72,release);
-        const elevation = lerp(lerp(lerp(lerp(lerp(.41,0,drawing),.25,intoBench),.22,frame.chamber),.33,intoFit),.41,release);
+        const compare = frame.compare ?? 0;
+        const viewYaw = lerp(lerp(lerp(lerp(.30,0,drawing),.23,intoBench),.48,frame.chamber),.55,intoFit);
+        const viewElevation = lerp(lerp(lerp(lerp(.41,0,drawing),.25,intoBench),.22,frame.chamber),.33,intoFit);
+        const yaw = lerp(lerp(viewYaw,.36,compare),2.72,release);
+        const elevation = lerp(lerp(viewElevation,.36,compare),.41,release);
         const closing = 1-(frame.explode ?? 1)*(1-ease(frame.assembly,.72,1));
         const view = lerp(lerp(.65,.49,closing),.61,intoBench);
         const clearance = Math.sin(Math.PI*iteration);

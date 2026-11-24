@@ -144,11 +144,18 @@ Object.assign(translations,{
 });
 Object.assign(translations,{'LIVE CAD / COMMAND RESPONSE':'实时 CAD / 指令响应','Wake first, click a command, then press the trigger.':'先唤醒，点击指令，再按下扳机。'});
 const textSources=new WeakMap();
+const pageTitles = {
+  '/about/':['About Us | Gabbrotech','关于我们 | Gabbrotech'],
+  '/journey/':['Our Journey | Gabbrotech','探索历程 | Gabbrotech'],
+  '/smarttorque/':['SmartTorque — Intelligent EVA Multi-Tool | Gabbrotech','SmartTorque — 智能舱外多功能工具 | Gabbrotech'],
+  '/':['Gabbrotech — Intelligent Tools for the Work Beyond','Gabbrotech — 面向太空作业的智能工具']
+};
 let language=localStorage.getItem('gabbrotech-language')||'en';
 let theme=localStorage.getItem('gabbrotech-theme')||'dark';
 function applyLanguage(){
   document.documentElement.lang=language==='zh'?'zh-CN':'en';
-  document.title=language==='zh'?(location.pathname.includes('smarttorque')?'SmartTorque — 智能舱外多功能工具 | Gabbrotech':'Gabbrotech — 面向太空作业的智能工具'):(location.pathname.includes('smarttorque')?'SmartTorque — Intelligent EVA Multi-Tool | Gabbrotech':'Gabbrotech — Intelligent Tools for the Work Beyond');
+  const pagePath = location.pathname.replace(/index\.html$/, '');
+  if (pageTitles[pagePath]) document.title = pageTitles[pagePath][language === 'zh' ? 1 : 0];
   const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
   while(walker.nextNode()){const node=walker.currentNode;if(node.parentElement.closest('[data-i18n-skip], noscript, script, style, template'))continue;if(!textSources.has(node))textSources.set(node,node.nodeValue);const source=textSources.get(node),key=source.trim(),leading=source.match(/^\s*/)?.[0]||'',trailing=source.match(/\s*$/)?.[0]||'';node.nodeValue=leading+(language==='zh'?(translations[key]||key):key)+trailing;}
   document.querySelectorAll('h1,h2,h3').forEach(heading=>{if(heading.classList.contains('company-slogan'))return;const nodes=[];const walk=document.createTreeWalker(heading,NodeFilter.SHOW_TEXT);while(walk.nextNode())nodes.push(walk.currentNode);const last=nodes.reverse().find(node=>node.nodeValue.trim());if(last)last.nodeValue=last.nodeValue.replace(/[。.]\s*$/,'');});
@@ -170,6 +177,13 @@ if (attachmentPanel) {
   const tabs = [...document.querySelectorAll('[data-attachment]')];
   const tabList = tabs[0].closest('[role="tablist"]');
   const artwork = attachmentPanel.querySelector('.task-art img');
+  let artworkStatus = attachmentPanel.querySelector('.task-art-status');
+  if (!artworkStatus) {
+    artworkStatus = document.createElement('span');
+    artworkStatus.className = 'task-art-status';
+    artworkStatus.setAttribute('role','status');
+    artwork.after(artworkStatus);
+  }
   const description = attachmentPanel.querySelector('.task-notes p');
   const inspect = attachmentPanel.querySelector('.detail-link');
   const horizontal = matchMedia('(max-width: 760px)');
@@ -187,16 +201,47 @@ if (attachmentPanel) {
       '成对钳口向内闭合，用于抓取贴合的零件。'
     ]
   };
-  let selectedHead;
+  let selectedHead, artworkState = 'ready', artworkRequest = 0;
+
+  function showArtworkStatus() {
+    const chinese = language === 'zh';
+    artwork.hidden = artworkState !== 'ready';
+    artworkStatus.hidden = !artwork.hidden;
+    artworkStatus.textContent = artworkState === 'loading'
+      ? (chinese ? '正在加载接头视图…' : 'Loading attachment view…')
+      : (chinese ? '图片暂不可用，可在 3D 中查看此接头。' : 'Preview unavailable. View this head in 3D.');
+  }
+
+  async function loadArtwork(tab) {
+    const request = ++artworkRequest;
+    artworkState = 'loading';
+    showArtworkStatus();
+    artwork.loading = 'eager';
+    artwork.src = tab.dataset.artwork;
+    try {
+      await artwork.decode();
+      if (request === artworkRequest) artworkState = 'ready';
+    } catch {
+      if (request === artworkRequest) artworkState = 'failed';
+    }
+    if (request === artworkRequest) showArtworkStatus();
+  }
+
+  artwork.addEventListener('error', () => {
+    if (artworkState !== 'ready') return;
+    artworkState = 'failed';
+    showArtworkStatus();
+  });
 
   function showAttachment(key,sync = true) {
     const tab = tabs.find(button => button.dataset.attachment === key);
     if (!tab) return;
-    if (selectedHead !== key && (selectedHead || key !== 'driver')) {
-      artwork.src = tab.dataset.artwork;
-    }
+    if (selectedHead !== key && (selectedHead || key !== 'driver')) loadArtwork(tab);
     selectedHead = key;
     const chinese = language === 'zh';
+    const headName = tab.querySelector('span').dataset[chinese ? 'zh' : 'en'];
+    inspect.setAttribute('aria-label', chinese ? '在 3D 中查看' + headName : 'View ' + headName + ' in 3D');
+    showArtworkStatus();
     description.textContent = descriptions[key][chinese ? 1 : 0];
     inspect.firstChild.nodeValue = chinese ? '在 3D 中查看 ' : 'View in 3D ';
     attachmentPanel.setAttribute('aria-labelledby',tab.id);

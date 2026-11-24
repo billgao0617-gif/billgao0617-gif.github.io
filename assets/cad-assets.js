@@ -6,18 +6,35 @@ const files = new Map();
 let manifest;
 
 async function fetchAsset(url, type) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Could not load ${url} (${response.status})`);
-  return response[type]();
+  for (let attempt = 0; ; attempt++) {
+    let retryable = true;
+    try {
+      const response = await fetch(url, {signal:AbortSignal.timeout?.(12000)});
+      if (!response.ok) {
+        retryable = response.status === 408 || response.status === 429 || response.status >= 500;
+        throw new Error(`Could not load ${url} (${response.status})`);
+      }
+      return await response[type]();
+    } catch (error) {
+      if (attempt || !retryable) throw error;
+      await new Promise(resolve => setTimeout(resolve, 350));
+    }
+  }
 }
 
 export function loadCadManifest() {
-  return manifest ??= fetchAsset('/assets/cad/manifest.json', 'json');
+  return manifest ??= fetchAsset('/assets/cad/manifest.json', 'json').catch(error => {
+    manifest = undefined;
+    throw error;
+  });
 }
 
 export async function cloneCadPart(url) {
   if (!files.has(url)) {
-    files.set(url, fetchAsset(url, 'text').then(source => loader.parse(source, url)));
+    files.set(url, fetchAsset(url, 'text').then(source => loader.parse(source, url)).catch(error => {
+      files.delete(url);
+      throw error;
+    }));
   }
   // A placement can replace materials without touching the cached geometries.
   return (await files.get(url)).clone(true);

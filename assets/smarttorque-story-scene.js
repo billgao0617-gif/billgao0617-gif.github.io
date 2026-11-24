@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import { cloneCadPart, loadCadManifest, solidWorksMatrix, isBodyPart } from './cad-assets.js?v=8d65b9b8b487';
+import { cloneCadPart, loadCadManifest, solidWorksMatrix, isBodyPart } from './cad-assets.js?v=adb15ad71e35';
 import { addCommercialHousing, brushedMetal, makeBodyFinish, roundedDeck, deckShoulder, displayFit, makeStudioEnvironment } from './smarttorque-story-finish.js?v=7632a549065e';
 import { makeScreenReadout, makeWakeDisplay, makeWakeWaves } from './smarttorque-story-interface.js?v=7ce899e23fa6';
 import { Mechanism } from './mechanism.js?v=84d3a46e6944';
-import { makeSideTether } from './smarttorque-side-tether.js?v=350f43e355dd';
-import { evaCamera } from './smarttorque-story-timeline.js?v=f123fa489fb3';
+import { makeSideTether } from './smarttorque-side-tether.js?v=9beb5428f26b';
+import { evaCamera } from './smarttorque-story-timeline.js?v=dd36b206b83e';
 
 const finish = (color, metalness, roughness) => new THREE.MeshPhysicalMaterial({
   color, metalness, roughness, side: THREE.DoubleSide
@@ -264,7 +264,7 @@ export async function buildStoryScene(host, {overview = false} = {}) {
       parent.add(object);
       return object;
     };
-    await Promise.all(shellRows.map(part => {
+    const shellWork = shellRows.map(part => {
       const transform = sourceOrientation.clone().multiply(solidWorksMatrix(part.transform));
       let material = navy;
       if (/^电钻/.test(cadName(part))) material = bodyFinish;
@@ -274,9 +274,9 @@ export async function buildStoryScene(host, {overview = false} = {}) {
       if (/^编码器.*齿轮/.test(cadName(part))) material = gold;
       if (/^编码器$/.test(cadName(part))) material = graphite;
       return addPart(part, /^力矩盘/.test(cadName(part)) ? gear : tool, transform, material);
-    }));
+    });
 
-    await Promise.all(loadedHeads.map(async key => {
+    const headWork = loadedHeads.map(async key => {
       const assembly = assemblies[key];
       const anchor = assembly.find(part => /^电钻/.test(cadName(part)));
       const alignment = bodyTransform.clone().multiply(solidWorksMatrix(anchor.transform).invert());
@@ -286,7 +286,7 @@ export async function buildStoryScene(host, {overview = false} = {}) {
       // Keep each attachment's native CAD coordinate system inside the
       // registered group so the prototype's existing jaw solver is reusable.
       const nativeAssembly = new THREE.Group();
-      const components = await Promise.all(assembly.filter(part => part.visible !== false && !isBodyPart(part)).map(async part => {
+      const componentResults = await Promise.allSettled(assembly.filter(part => part.visible !== false && !isBodyPart(part)).map(async part => {
         const transform = solidWorksMatrix(part.transform);
         if (key === 'driver' && part.url.endsWith('/part-027.wrl')) {
           await addPart(part,socket,alignment.clone().multiply(transform),headSteel);
@@ -312,18 +312,26 @@ export async function buildStoryScene(host, {overview = false} = {}) {
           geometryRestQuaternion:geometry.quaternion.clone(), geometryRestPosition:geometry.position.clone()
         };
       }));
+      const failedComponent = componentResults.find(result => result.status === 'rejected');
+      if (failedComponent) throw failedComponent.reason;
       if (key !== 'driver') {
         const motion = new Mechanism();
-        motion.setParts(components.filter(Boolean),key);
+        motion.setParts(componentResults.map(result => result.value).filter(Boolean),key);
         motions[key] = motion;
       }
       nativeAssembly.applyMatrix4(alignment);
       group.add(nativeAssembly);
       if (key === 'driver') group.add(socket);
-    }));
+    });
 
     const curved = manifest.retention.find(part => part.id === 'retention-0');
-    const curvedRing = await addPart(curved,tool,new THREE.Matrix4(),steel);
+    const [ringResult, ...partResults] = await Promise.allSettled([
+      addPart(curved,tool,new THREE.Matrix4(),steel), ...shellWork, ...headWork
+    ]);
+    if (ringResult.status === 'rejected') throw ringResult.reason;
+    const failedPart = partResults.find(result => result.status === 'rejected');
+    if (failedPart) throw failedPart.reason;
+    const curvedRing = ringResult.value;
     const cord = finish(0x7797a8,.09,.51);
     cord.onBeforeCompile = shader => {
       shader.vertexShader = shader.vertexShader.replace('#include <common>',

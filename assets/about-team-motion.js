@@ -9,12 +9,13 @@ let video;
 let crops = [];
 let frameRequest;
 let lastPaintedTime;
-let finished = false;
+let finished = false, started = false;
 
 function finish() {
   if (finished) return;
   finished = true;
   observer.disconnect();
+  preloadObserver.disconnect();
   team.removeAttribute('data-team-motion');
   team.removeAttribute('data-team-video-frame');
   if (!video) return;
@@ -87,26 +88,44 @@ function prepareVideo() {
     });
     if (crops.some(crop => !crop.context)) finish();
   }, { once: true });
-  video.addEventListener('loadeddata', () => drawFrame(), { once: true });
+  video.addEventListener('canplay', tryPlayback);
   video.addEventListener('playing', render, { once: true });
   stage.append(video);
   video.src = team.dataset.teamVideo;
 }
 
-const lastPortrait = portraits.at(-1);
+const visiblePortraits = new Set();
+function tryPlayback() {
+  if (finished || started || document.hidden || visiblePortraits.size !== portraits.length ||
+      !video || video.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) return;
+  started = true;
+  observer.disconnect();
+  video.play().catch(finish);
+}
+
 const observer = new IntersectionObserver(entries => {
-  if (finished || !entries.some(entry => entry.isIntersecting)) return;
-  prepareVideo();
-  if (!finished && entries.some(entry => entry.target === lastPortrait && entry.intersectionRatio >= 0.5)) {
-    observer.disconnect();
-    video.play().catch(finish);
+  for (const entry of entries) {
+    if (entry.intersectionRatio >= .5) visiblePortraits.add(entry.target);
+    else visiblePortraits.delete(entry.target);
   }
-}, { threshold: [0, 0.5] });
+  tryPlayback();
+}, {threshold:[0,.5], rootMargin:'-64px 0px 0px'});
+const preloadObserver = new IntersectionObserver(([entry]) => {
+  if (!entry.isIntersecting) return;
+  preloadObserver.disconnect();
+  prepareVideo();
+}, {rootMargin:'430px 0px'});
 
 if (team.dataset.teamVideo && !reducedMotion.matches) {
   team.setAttribute('data-team-motion', '');
-  observer.observe(portraits[0]);
-  observer.observe(lastPortrait);
+  portraits.forEach(portrait => observer.observe(portrait));
+  preloadObserver.observe(stage);
+  document.addEventListener('visibilitychange', () => {
+    if (finished) return;
+    if (!started) { tryPlayback(); return; }
+    if (document.hidden) video.pause();
+    else video.play().catch(finish);
+  });
   reducedMotion.addEventListener('change', event => {
     if (event.matches) finish();
   });

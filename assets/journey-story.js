@@ -18,6 +18,11 @@ const shotLabel = art.querySelector('.journey-shot-label');
 const tether = end.querySelector('.journey-tether-path');
 const toolbar = viewport.querySelector('.journey-stage-toolbar');
 const sceneTitle = toolbar.querySelector('.journey-stage-title');
+const loadingStatus = document.createElement('span');
+loadingStatus.className = 'journey-stage-loading';
+loadingStatus.setAttribute('role','status');
+loadingStatus.hidden = true;
+toolbar.append(loadingStatus);
 const technicalNote = art.querySelector('.journey-technical-note');
 const testSymbol = art.querySelector('.journey-test-symbol');
 const stillImages = steps.map(step => step.querySelector('.journey-still img'));
@@ -99,7 +104,8 @@ let scene, request = 0, lastTime = 0;
 let active = -1, language = 0, progress = 0, target = 0;
 let width = 0, height = 0, storyTop = 0, travel = 1;
 let finalPlateReady = false, lastFallbackIndex;
-let dirty = true, disposed = false;
+let dirty = true, disposed = false, chapterChosen = false;
+const drawingHandoff = 1.82;
 const background = end.querySelector('img');
 background.decode().then(() => { finalPlateReady = true; refresh(); }).catch(() => {});
 
@@ -161,7 +167,8 @@ function measure() {
   storyTop = distance.getBoundingClientRect().top + scrollY - topMargin;
   travel = innerHeight * storyLength * (narrow.matches ? .24 : .29);
   for (let i = 0; i < anchors.length; i++) {
-    anchors[i].style.height = `${(stops[i+1] - stops[i]) / storyLength * travel}px`;
+    const next = landings[i+1] ?? storyLength;
+    anchors[i].style.height = `${(next - landings[i]) / storyLength * travel}px`;
   }
   distance.style.paddingBottom = `${viewport.offsetHeight + 5}px`;
   const nextWidth = art.clientWidth;
@@ -182,6 +189,7 @@ function selectedAnchor() {
 
 function go(index) {
   if (index < 0) return;
+  chapterChosen = index > 0;
   if (working) {
     positionAt(landings[index]);
     setActive(index);
@@ -218,6 +226,7 @@ function setMode() {
   if (linked >= 0) go(linked);
   else if (hadMotion !== working && index > 0) go(index);
   if (working && inView) loadScene();
+  if (!working) loadingStatus.hidden = true;
 }
 
 function slideImage(plate, point, zoom, percentX) {
@@ -316,20 +325,21 @@ function render(scrollDistance) {
   frame.inspection = ease(7.13,7.22,value)*(1-ease(7.23,7.38,value));
   frame.chamber = ease(7.48,7.72,value)*(1-ease(16.12,16.69,value));
   frame.door = 1;
-  frame.hatch = Math.max(1-ease(7.74,7.99,value),ease(14.92,15.39,value));
-  frame.toolLift = ease(15.42,16.12,value)*(1-ease(16.69,17.19,value));
+  frame.hatch = Math.max(1-ease(7.69,7.99,value),ease(14.88,15.34,value));
+  frame.toolLift = ease(15.46,16.18,value)*(1-ease(16.69,17.19,value));
   frame.conditioning = ease(7.94,8.24,value)*(1-.79*ease(14.05,14.83,value));
   frame.scan = unit((value-8)/2);
   frame.exposureKind = exposure > 0 ? Math.min(3,exposure) : 0;
-  frame.exposureMix = exposure === 1 ? ease(8,8.26,value) :
-    exposure === 2 ? ease(10,10.30,value) :
-    exposure === 3 ? ease(12,12.30,value) : 1;
+  frame.exposureMix = exposure === 1 ? ease(8,8.17,value) :
+    exposure === 2 ? ease(10,10.17,value) :
+    exposure === 3 ? ease(12,12.17,value) : 1;
   frame.lcdCheck = ease(14,14.16,value)*(1-ease(14.35,14.60,value));
   frame.driveCheck = ease(14.32,14.72,value);
   frame.releaseCheck = ease(14.64,14.82,value)*(1-ease(14.88,15.06,value));
   frame.inspectMark = value >= 7.10 && value < 7.27;
-  frame.iteration = ease(17.21,19.14,value);
-  frame.seam = ease(19.04,19.57,value);
+  frame.iteration = ease(16.96,19.24,value);
+  frame.seam = ease(19.10,19.64,value);
+  frame.compare = ease(16.45,16.95,value)*(1-ease(19.64,20.03,value));
   frame.interface = ease(20.67,21.48,value);
   frame.dock = ease(21.15,22.10,value);
   frame.task = ease(19.70,20.05,value)*(1-ease(20.44,20.84,value));
@@ -350,7 +360,7 @@ function render(scrollDistance) {
   const usingSymbol = exposure >= 1 && exposure <= 3;
   testSymbol.hidden = !usingSymbol;
   if (usingSymbol && testSymbol.dataset.kind !== String(exposure)) testSymbol.dataset.kind = exposure;
-  const exit = value >= 14.92 && value < 16.69;
+  const exit = value >= 14.88 && value < 16.69;
   const shot = exit ? shotLabels[2] : index === 3 && value < 17.21 ? shotLabels[1] : shotLabels[index];
   if (shotLabel.textContent !== shot[language]) shotLabel.textContent = shot[language];
   const focus = index === 0 ? ['Technical drawing','结构图纸'] :
@@ -358,11 +368,11 @@ function render(scrollDistance) {
     debugging ? ['Software debug','软件调试'] :
     transfer ? value < 7.48 ? ['Retract the test fixture','试验夹具退场'] :
       ['Align the open chamber','开盖试验箱对位'] :
-    exit ? value < 15.42 ? ['Open the chamber lid','打开试验箱上盖'] :
+    exit ? value < 15.46 ? ['Open the chamber lid','打开试验箱上盖'] :
       ['Lift out the prototype','原型升出试验箱'] :
-    integration ? value < 17.21 ? ['Open prototype','外露结构原型'] :
-      value < 18.53 ? ['Align the new housing','新外壳对位'] :
-      value < 19.14 ? ['Seat the display','屏幕与边框落座'] :
+    integration ? value < 16.96 ? ['Open prototype','外露结构原型'] :
+      value < 18.55 ? ['Align the new housing','新外壳对位'] :
+      value < 19.36 ? ['Seat the display','屏幕与边框落座'] :
       ['Integrated product design','集成后的产品形态'] :
     exposureSteps[exposure];
   stageHeading(index, focus);
@@ -398,14 +408,19 @@ function draw(time) {
   if (!inView || document.hidden || !working || !width || !height) return;
   const dt = lastTime ? Math.min(150,time-lastTime) : 16.7;
   lastTime = time;
-  const delta = target - progress;
+  const waiting = !scene && !failed && !chapterChosen && target > drawingHandoff;
+  const goal = waiting ? drawingHandoff : target;
+  const copy = language ? '正在准备 3D 装配…' : 'Preparing the 3D assembly…';
+  if (loadingStatus.textContent !== copy) loadingStatus.textContent = copy;
+  loadingStatus.hidden = !waiting;
+  const delta = goal - progress;
   const offset = Math.abs(delta);
-  progress = offset < .012 || offset > 2.5 ? target : progress + delta*(1-Math.exp(-dt/68));
+  progress = offset < .012 || offset > 2.5 ? goal : progress + delta*(1-Math.exp(-dt/68));
   if (delta || dirty) {
     render(progress);
     dirty = false;
   }
-  if (target !== progress) schedule();
+  if (goal !== progress) schedule();
   else lastTime = 0;
 }
 
@@ -416,11 +431,14 @@ function schedule() {
 function loadScene() {
   if (loaded || failed || !working) return;
   loaded = true;
-  import('./journey-scene.js?v=a93cdc43da82').then(({buildJourneyScene}) => buildJourneyScene(host)).then(result => {
+  import('./journey-scene.js?v=9df3ad93200b').then(({buildJourneyScene}) => buildJourneyScene(host)).then(result => {
     if (disposed) { result.release(); return; }
     scene = result;
     if (width && height) scene.resize(width,height);
     journey.toggleAttribute('data-live',working);
+    if (working && inView && !chapterChosen && target > drawingHandoff && target < storyLength) {
+      positionAt(drawingHandoff);
+    }
     refresh();
   }).catch(() => { failed = true; refresh(); });
 }
@@ -445,8 +463,19 @@ const visible = new IntersectionObserver(([entry]) => {
   }
 });
 visible.observe(viewport);
+const nearby = new IntersectionObserver(([entry]) => {
+  if (entry.isIntersecting) loadScene();
+}, {rootMargin:'620px 0px'});
+nearby.observe(viewport);
 new ResizeObserver(measure).observe(viewport);
-window.addEventListener('resize', measure, {passive:true});
+let layoutWidth = innerWidth;
+window.addEventListener('resize', () => {
+  const prior = target;
+  const reflow = working && inView && layoutWidth !== innerWidth && prior > 0 && prior < storyLength;
+  layoutWidth = innerWidth;
+  measure();
+  if (reflow) positionAt(prior);
+}, {passive:true});
 window.addEventListener('scroll', updateTrack, {passive:true});
 window.addEventListener('site-language-change', localize);
 window.addEventListener('site-theme-change', refresh);

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { curvedRetentionSeat } from './cad-assets.js?v=8d65b9b8b487';
-import { evaCamera } from './smarttorque-story-timeline.js?v=f123fa489fb3';
+import { curvedRetentionSeat } from './cad-assets.js?v=adb15ad71e35';
+import { evaCamera } from './smarttorque-story-timeline.js?v=dd36b206b83e';
 
 function piece(group, geometry, material, x=0, y=0, z=0) {
   const object = new THREE.Mesh(geometry, material);

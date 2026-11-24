@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { buildStoryScene } from './smarttorque-story-scene.js?v=4f79d4ee514e';
+import { buildStoryScene } from './smarttorque-story-scene.js?v=5918446cbf8c';
 
 const guide = document.querySelector('#overview');
 const model = guide.querySelector('.guide-model');
@@ -114,7 +114,7 @@ const loadObserver = new IntersectionObserver(([entry]) => {
     scene = result;
     queueDraw();
   }).catch(fail);
-}, {rootMargin: '200px 0px'});
+}, {rootMargin: '400px 0px'});
 loadObserver.observe(host);
 
 new IntersectionObserver(([entry]) => {

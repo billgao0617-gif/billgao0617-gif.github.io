@@ -1,9 +1,11 @@
 import { Vector3 } from 'three';
-import { buildStoryScene } from './smarttorque-story-scene.js?v=4f79d4ee514e';
-import { ease, voiceStart, tetherStart, positionStoryParts, attachmentAt, evaCamera, storyProgress } from './smarttorque-story-timeline.js?v=f123fa489fb3';
+import { buildStoryScene } from './smarttorque-story-scene.js?v=5918446cbf8c';
+import { ease, voiceStart, tetherStart, positionStoryParts, attachmentAt, evaCamera, storyProgress } from './smarttorque-story-timeline.js?v=dd36b206b83e';
 
 const story = document.querySelector('.smart-story');
 const stage = story.querySelector('.smart-story-stage');
+const page = document.documentElement;
+const begin = story.querySelector('.smart-story-begin');
 const intro = story.querySelector('.smart-story-intro');
 const skip = intro.querySelector('a');
 const hero = story.querySelector('.smart-story-hero');
@@ -11,7 +13,7 @@ const canvasHost = story.querySelector('.smart-story-model');
 const eva = story.querySelector('.smart-story-eva');
 const evaFrame = story.querySelector('#smart-story-eva-frame');
 const evaGlove = story.querySelector('.smart-story-eva-glove');
-let evaPlate, evaForearm;
+let photographLoaded = false;
 const caption = story.querySelector('.smart-story-caption');
 const title = caption.querySelector('h2');
 const description = caption.querySelector('p');
@@ -43,7 +45,7 @@ const frame = {
   dock: 0, spin: 0, sideView: 0, highlight: 0, eva: 0, evaScale: 1, evaX: 0, evaY: 0,
   light: document.documentElement.dataset.theme === 'light'
 };
-let scene, load, loadFailed = false, visible = false;
+let scene, load, loadFailed = false, visible = false, pageDisposed = false;
 let current = 0, target = 0, pending = 0, timestamp = 0, dirty = true;
 let sectionTop = 0, travel = 1, handWidth = 1, handX = 0, handY = 0;
 let act, attachment = -1, introHidden = false, wakePhase = -1;
@@ -69,11 +71,11 @@ function renderWakeStatus() {
 
 function positionPhotograph(width, height) {
   const portrait = portraitHero.matches;
-  const imageHeight = portrait ? Math.min(height,width*.81) : height;
+  const imageHeight = portrait ? Math.min(height*.74,Math.max(width*1.02,height*.505)) : height;
   const scale = Math.max(width/evaCamera.width,imageHeight/evaCamera.height);
   const renderedWidth = evaCamera.width * scale;
   const renderedHeight = evaCamera.height * scale;
-  const left = (width-renderedWidth) * (portrait ? .47 : .55);
+  const left = (width-renderedWidth) * (portrait ? .42 : .55);
   const top = (height-renderedHeight) * .48;
   stage.style.setProperty('--eva-width',`${renderedWidth}px`);
   stage.style.setProperty('--eva-height',`${renderedHeight}px`);
@@ -85,18 +87,19 @@ function positionPhotograph(width, height) {
 }
 
 function loadPhotograph() {
-  if (evaPlate) return;
   const template = evaFrame.content.firstElementChild;
-  evaPlate = template.cloneNode();
-  evaForearm = template.cloneNode();
-  for (const [layer,image] of [[eva,evaPlate],[evaGlove,evaForearm]]) {
-    image.addEventListener('load', () => { dirty = true; schedule(); });
+  const images = [eva,evaGlove].map(layer => {
+    const image = template.cloneNode();
+    image.fetchPriority = 'low';
+    image.decoding = 'async';
     layer.append(image);
-  }
-}
-
-function photographReady() {
-  return evaPlate?.complete && evaPlate.naturalWidth > 0 && evaForearm?.complete && evaForearm.naturalWidth > 0;
+    return image;
+  });
+  Promise.all(images.map(image => image.decode())).then(() => {
+    photographLoaded = true;
+    dirty = true;
+    schedule();
+  }).catch(() => {});
 }
 
 function measure() {
@@ -142,10 +145,12 @@ function positionTimeline(scrollProgress) {
   const height = frame.height;
   const mobile = width < 650;
   const featureWidth = interpolate(.264, .288, ease(progress, .151, .205)*(1-ease(progress,.52,.58)));
+  const shortViewport = height < 440;
+  const verticalFit = shortViewport ? .57 : .67;
   const heroDistance = .258 * height / (fovFactor * handWidth);
-  const mainDistance = Math.max(featureWidth * height / (fovFactor * width * (mobile ? .86 : .67)), .192 / (fovFactor * .67));
-  const lcdDistance = Math.max((mobile ? .257 + .022 * toJaws : .213) * height / (fovFactor * width * (mobile ? .90 : .72)), .164 / (fovFactor * .69));
-  const ringDistance = Math.max((mobile ? .238 : .166) * height / (fovFactor * width * (mobile ? .85 : .56)), .153 / (fovFactor * .69));
+  const mainDistance = Math.max(featureWidth * height / (fovFactor * width * (mobile ? .86 : .67)), .192 / (fovFactor * verticalFit));
+  const lcdDistance = Math.max((mobile ? .299 + .014 * toJaws : .213) * height / (fovFactor * width * (mobile ? .90 : .72)), .164 / (fovFactor * (verticalFit + .02)));
+  const ringDistance = Math.max((mobile ? .272 : .166) * height / (fovFactor * width * (mobile ? .85 : .56)), .153 / (fovFactor * (verticalFit + .02)));
   frame.distance = interpolate(interpolate(interpolate(interpolate(heroDistance, mainDistance, emergence), lcdDistance, toLCD),
     ringDistance, toRing), ringDistance*1.04, settle) * (1-.113*toLatch*(1-settle));
   frame.yaw = interpolate(interpolate(interpolate(interpolate(interpolate(.195,.48,emergence),
@@ -155,12 +160,12 @@ function positionTimeline(scrollProgress) {
   frame.roll = -.13 * emergence * (1 - toSide) - .05 * toRing * (1 - settle);
   frame.pitch = .06 * emergence * (1 - toSide) - .035 * toRing * (1 - settle);
   frame.aim.set(
-    interpolate(interpolate(interpolate(interpolate(.02, .024, emergence) + .015 * toSide * (1 - toLCD), interpolate(.010,.039,toJaws), toLCD), mobile ? .039 : .044, toRing), mobile ? .040 : .059, settle),
+    interpolate(interpolate(interpolate(interpolate(.02, .024, emergence) + .015 * toSide * (1 - toLCD), interpolate(mobile ? .027 : .010,.039,toJaws), toLCD), mobile ? .039 : .044, toRing), mobile ? .040 : .059, settle),
     interpolate(interpolate(interpolate(interpolate(.002, -.037, emergence), -.008, toLCD), -.023, toRing), -.012, settle),
     interpolate(0, .037, toRing)
   );
   frame.shiftX = interpolate(handX, 0, emergence);
-  frame.shiftY = interpolate(handY, -height * (mobile ? .015 : .065), emergence);
+  frame.shiftY = interpolate(handY, -height * (shortViewport ? .10 : mobile ? .035 : .065), emergence);
 
   positionStoryParts(frame, progress);
   const transmission = frame.transmissionTime;
@@ -171,7 +176,7 @@ function positionTimeline(scrollProgress) {
   frame.distance = interpolate(frame.distance,focusDistance,inspect);
   frame.yaw = interpolate(frame.yaw,.31+.11*ease(transmission,.18,.81),inspect);
   frame.elevation = interpolate(frame.elevation,.31,inspect);
-  frame.shiftY = interpolate(frame.shiftY,-height*.045,inspect);
+  frame.shiftY = interpolate(frame.shiftY,-height*(shortViewport ? .125 : .065),inspect);
   const fastening = ease(frame.fasteningTime,0,.27) * (1-ease(frame.fasteningTime,.88,1));
   const sideDistance=Math.max(.358,.170*height/(fovFactor*width*(mobile ? .89 : .65)));
   frame.aim.x = interpolate(frame.aim.x,.127,fastening);
@@ -180,9 +185,8 @@ function positionTimeline(scrollProgress) {
   frame.distance = interpolate(frame.distance,sideDistance,fastening);
   frame.yaw = interpolate(frame.yaw,-.115,fastening);
   frame.elevation = interpolate(frame.elevation,.17,fastening);
-  frame.shiftY = interpolate(frame.shiftY,-height*.052,fastening);
-  if (progress > .64) loadPhotograph();
-  const ready = photographReady();
+  frame.shiftY = interpolate(frame.shiftY,-height*(shortViewport ? .125 : .068),fastening);
+  const ready = photographLoaded;
   frame.spin = ready ? ease(progress,.936,.980) : 0;
   frame.dock = ready ? ease(progress,.943,.986) : 0;
   frame.sideView = ready ? ease(progress,.953,.985) : 0;
@@ -221,6 +225,8 @@ function updateOverlays(progress) {
     voice.hidden = act !== 'voice';
     localize();
   }
+  if (progress > .045) story.setAttribute('data-started','');
+  else if (document.activeElement !== begin) story.removeAttribute('data-started');
   caption.hidden = progress < .067;
   caption.style.opacity = ease(progress,.064,.13) * (1 - ease(frame.dock,.15,.6));
   if (act === 'voice') {
@@ -282,8 +288,13 @@ function onScroll() {
 
 function disableMotion() {
   stop();
+  const anchor = downstreamAnchor();
+  const priorTop = anchor?.getBoundingClientRect().top;
+  delete page.dataset.storyPreparing;
   story.removeAttribute('data-playing');
+  story.removeAttribute('data-started');
   fallback.hidden = false;
+  preserveAnchor(anchor, priorTop);
   caption.hidden = true;
   intro.style.visibility = 'visible';
   intro.style.opacity = 1;
@@ -302,30 +313,55 @@ function showFallback(error) {
   console.warn('SmartTorque story switched to its still image.', error);
 }
 
+function downstreamAnchor() {
+  const linked = document.getElementById(location.hash.slice(1));
+  if (linked && (story.compareDocumentPosition(linked) & Node.DOCUMENT_POSITION_FOLLOWING) && !story.contains(linked)) {
+    // A stale hash should not affect a visitor who has scrolled back to the story.
+    if (Math.abs(linked.getBoundingClientRect().top) < innerHeight) return linked;
+  }
+  if (story.getBoundingClientRect().bottom <= 0) return story.nextElementSibling;
+}
+
+function preserveAnchor(anchor, priorTop) {
+  if (anchor && Number.isFinite(priorTop)) {
+    scrollBy({top:anchor.getBoundingClientRect().top - priorTop,behavior:'instant'});
+  }
+}
+
 function enableMotion() {
   if (!scene || reducedMotion.matches || loadFailed || story.hasAttribute('data-playing')) return;
-  if (location.hash && location.hash !== '#main' && location.hash !== '#product-story') {
-    // Direct links still land on the existing section when sticky height is added.
-    const anchor = document.getElementById(location.hash.slice(1));
-    const priorTop = anchor?.getBoundingClientRect().top;
-    story.setAttribute('data-playing','');
-    fallback.hidden = true;
-    if (Number.isFinite(priorTop)) {
-      window.scrollBy({top: anchor.getBoundingClientRect().top - priorTop, behavior: 'instant'});
-    }
-  } else {
-    story.setAttribute('data-playing','');
-    fallback.hidden = true;
-  }
+  const preparing = page.hasAttribute('data-story-preparing');
+  const anchor = downstreamAnchor();
+  const priorTop = anchor?.getBoundingClientRect().top;
+  story.setAttribute('data-playing','');
+  fallback.hidden = true;
   measure();
+  positionTimeline(0);
+  // Confirm the first GL frame before exposing the scroll cue.
+  scene.render(frame);
+  delete page.dataset.storyPreparing;
+  preserveAnchor(anchor, priorTop);
+  measure();
+  const bounds = story.getBoundingClientRect();
+  if (preparing && !anchor && bounds.top <= innerHeight && bounds.bottom > stage.clientHeight && target > .018) {
+    // Continue from the opening shot after a fast first scroll on a cold load.
+    scrollTo({top:sectionTop,behavior:'instant'});
+    onScroll();
+  }
   current = target;
+  dirty = true;
   schedule();
 }
 
 function loadWhenNear() {
-  if (scene) { enableMotion(); return; }
+  if (scene) {
+    try { enableMotion(); } catch (error) { showFallback(error); }
+    return;
+  }
   if (reducedMotion.matches || load || loadFailed) return;
+  loadPhotograph();
   load = buildStoryScene(canvasHost).then(result => {
+    if (pageDisposed) { result.release(); return; }
     scene = result;
     enableMotion();
   }).catch(showFallback);
@@ -338,12 +374,27 @@ window.addEventListener('site-theme-change', () => {
   dirty = true;
   schedule();
 });
+begin.addEventListener('click', event => {
+  if (event.button || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  // Start just far enough to make the first shot visible for keyboard users.
+  story.focus({preventScroll:true});
+  scrollTo({top:sectionTop + .082 * travel,behavior:'smooth'});
+});
+story.querySelector('[data-story-retry]').addEventListener('click', event => {
+  if (event.button || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+  event.preventDefault();
+  history.replaceState(null,'','#product-story');
+  story.scrollIntoView({block:'start',behavior:'instant'});
+  location.reload();
+});
 skip.addEventListener('blur', () => { if (introHidden) intro.style.visibility = 'hidden'; });
 localize();
 const nearby = new IntersectionObserver(entries => {
   if (entries[0].isIntersecting) loadWhenNear();
-}, {rootMargin: '150px 0px'});
+}, {rootMargin: '480px 0px'});
 nearby.observe(stage);
+if (page.hasAttribute('data-story-preparing')) loadWhenNear();
 const visibility = new IntersectionObserver(entries => {
   visible = entries[0].isIntersecting && entries[0].intersectionRatio > .035;
   if (visible) { current = target; dirty = true; onScroll(); }
@@ -351,7 +402,18 @@ const visibility = new IntersectionObserver(entries => {
 }, {threshold: [0, .035], rootMargin: '-55px 0px 0px'});
 visibility.observe(stage);
 new ResizeObserver(measure).observe(stage);
-window.addEventListener('resize', measure, {passive: true});
+let layoutWidth = innerWidth;
+window.addEventListener('resize', () => {
+  const prior = target;
+  const reflow = visible && layoutWidth !== innerWidth && prior > 0 && prior < 1 &&
+    story.hasAttribute('data-playing');
+  layoutWidth = innerWidth;
+  measure();
+  if (reflow) {
+    scrollTo({top:sectionTop + prior * travel,behavior:'instant'});
+    onScroll();
+  }
+}, {passive: true});
 window.addEventListener('scroll', onScroll, {passive: true});
 document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else schedule(); });
 portraitHero.addEventListener('change', measure);
@@ -361,5 +423,7 @@ canvasHost.addEventListener('webglcontextlost', event => {
   showFallback(event);
 }, true);
 window.addEventListener('pagehide', event => {
-  if (!event.persisted) scene?.release();
+  if (event.persisted) return;
+  pageDisposed = true;
+  scene?.release();
 });

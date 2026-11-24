@@ -95,7 +95,7 @@
   text-align: center;
   transition: opacity .23s ease-out, transform .23s ease-out;
 }
-#team[data-team-motion] .team-frame:not(:focus-within) .member-info {
+#team[data-team-video-frame] .team-frame:not(:focus-within) .member-info {
   opacity: 0;
   transform: translateY(7px);
   pointer-events: none;

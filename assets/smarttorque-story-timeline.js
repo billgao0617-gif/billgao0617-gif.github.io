@@ -31,7 +31,7 @@ export const evaCamera = {
 };
 
 const displayWake = .590;
-const displayWords = .661;
+const displayWords = .659;
 const voiceActStart = .699;
 const voiceActEnd = .764;
 
@@ -82,7 +82,7 @@ export function positionStoryParts(frame, progress) {
   frame.driveGear = frame.driverSpin - 4.1 * (frame.open.pliers + frame.open.scissors);
   frame.wave = ease(progress, displayWake, .601) * (1-ease(progress,.647,.677));
   frame.voiceTime = (progress - displayWake) / (.677 - displayWake);
-  frame.screenAlpha = ease(progress,displayWords,.677) * (1-ease(progress,.787,.806))
+  frame.screenAlpha = ease(progress,displayWords,.671) * (1-ease(progress,.787,.806))
     * (1-ease(fasten,.03,.17));
   frame.lcd = progress < displayWords ? -1 : progress < voiceActStart ? 0 : progress < voiceActEnd ? 1 : 2;
   frame.actionProgress = ease(progress, voiceActStart, voiceActEnd);
@@ -98,7 +98,7 @@ export function positionStoryParts(frame, progress) {
 }
 
 export function attachmentAt(progress) {
-  if (progress < .212) return 0;
-  if (progress < .370 || progress >= .534) return 1;
+  if (progress < .225) return 0;
+  if (progress < .384 || progress >= .550) return 1;
   return 2;
 }

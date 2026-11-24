@@ -24,7 +24,8 @@ html[data-theme="light"] .smart-story {
   --story-pill-ink: #102f3e;
 }
 
-.smart-story[data-playing] { height: 730svh; }
+:is(html[data-story-preparing] .smart-story, .smart-story[data-playing]) { height: 730svh; }
+html[data-story-preparing] .smart-story-fallback { display: none; }
 .smart-story-stage {
   position: relative;
   height: calc(100svh - var(--header-height));
@@ -33,7 +34,41 @@ html[data-theme="light"] .smart-story {
   overflow: hidden;
   background: radial-gradient(ellipse at 56% 42%, var(--story-spot) 0%, var(--story-mid) 43%, var(--story-background) 86%);
 }
-.smart-story[data-playing] .smart-story-stage { position: sticky; top: var(--header-height); min-height: 0; }
+:is(html[data-story-preparing] .smart-story, .smart-story[data-playing]) .smart-story-stage {
+  position: sticky;
+  top: var(--header-height);
+  min-height: 0;
+}
+.smart-story-prompt {
+  display: none;
+  position: absolute;
+  z-index: 3;
+  bottom: clamp(18px, 4svh, 40px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% - 2 * var(--gutter));
+  width: max-content;
+  padding: .38rem .95rem;
+  color: #f3f7fa;
+  background: #09141be8;
+  border: 1px solid #acdae273;
+  border-radius: 999px;
+  text-align: center;
+  font-size: clamp(.8rem, 1.4vw, .92rem);
+}
+.smart-story-loading, .smart-story-begin { display: none; }
+html[data-story-preparing] .smart-story-prompt,
+html[data-story-preparing] .smart-story-loading,
+.smart-story[data-playing]:not([data-started]) :is(.smart-story-prompt,.smart-story-begin) { display: block; }
+.smart-story-begin {
+  color: inherit;
+  min-height: 32px;
+  line-height: 32px;
+  text-decoration: none;
+}
+.smart-story-begin span + span { margin-inline-start: .5em; color: #a4dce9; }
+.smart-story-begin:focus-visible { outline: 2px solid #a4dce9; outline-offset: 4px; }
+.smart-story-fallback figcaption a { display: inline-block; margin-inline-start: .9rem; color: inherit; }
 .smart-story-hero, .smart-story-model, .smart-story-hero picture, .smart-story-hero img {
   position: absolute;
   inset: 0;
@@ -267,6 +302,6 @@ html[data-theme="light"] .smart-story-fallback { background: #202a39; }
 }
 @media (max-aspect-ratio: 11/10) {
   .smart-story-eva img {
-    mask-image: linear-gradient(to bottom, transparent, #000 17%, #000 84%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 24%, #000 79%, transparent);
   }
 }
