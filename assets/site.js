@@ -193,7 +193,7 @@ if (attachmentPanel) {
     const tab = tabs.find(button => button.dataset.attachment === key);
     if (!tab) return;
     if (selectedHead !== key && (selectedHead || key !== 'driver')) {
-      artwork.src = `/assets/editorial/smarttorque-detail-${key}.webp`;
+      artwork.src = tab.dataset.artwork;
     }
     selectedHead = key;
     const chinese = language === 'zh';
