@@ -165,18 +165,75 @@ window.siteText=text=>language==='zh'?(translations[text]||text):text;
 document.querySelector('[data-ui="language"]')?.addEventListener('click',()=>{language=language==='en'?'zh':'en';localStorage.setItem('gabbrotech-language',language);applyLanguage();window.dispatchEvent(new CustomEvent('site-language-change',{detail:{language}}));});
 document.querySelector('[data-ui="theme"]')?.addEventListener('click',()=>{theme=theme==='dark'?'light':'dark';localStorage.setItem('gabbrotech-theme',theme);applyTheme();});
 applyTheme();
-const tabs=document.querySelectorAll('[data-attachment]'),detail=document.querySelector('#attachment-detail');
-const attachmentData={
-  driver:{title:'Nut-driver head',role:'CONTROLLED HEX FASTENING',description:'A socket-style attachment for turning compatible nuts. Preset torque, speed and turn count support repeatable fastening and unfastening.',icon:'<circle cx="90" cy="90" r="64" fill="none" stroke="currentColor" stroke-width="2"/><path d="M90 34v84m-20-20 20 20 20-20M61 146h58" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>'},
-  scissors:{title:'Scissor head',role:'CONTROLLED CUTTING',description:'The original scissor mechanism from Assembly 1. Its paired blades, linkage rods and dedicated mounting adapter connect cutting tasks to the powered body.',icon:'<circle cx="90" cy="90" r="64" fill="none" stroke="currentColor" stroke-width="2"/><path d="m58 42 61 93M122 42l-61 93" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="57" cy="138" r="14" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="123" cy="138" r="14" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="90" cy="90" r="5" fill="currentColor"/>'},
-  pliers:{title:'Pliers head',role:'GRIP AND MANIPULATION',description:'A plier-style attachment for controlled gripping and manipulation of suitable parts through the shared platform.',icon:'<circle cx="90" cy="90" r="64" fill="none" stroke="currentColor" stroke-width="2"/><path d="M84 84 70 69 64 42 76 47 81 65 90 74 99 65 104 47 116 42 110 69 96 84" fill="currentColor" fill-opacity=".1" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><path d="M84 96C77 111 68 121 65 141M96 96C103 111 112 121 115 141" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round"/><circle cx="90" cy="87" r="12" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="90" cy="87" r="3" fill="currentColor"/>'}
-};
-const attachmentZh={driver:['螺母驱动','螺母螺丝刀头','用于旋拧兼容螺母的套筒式接头。预设扭矩、转速和圈数可支持重复的紧固与拆卸。'],scissors:['受控剪切','剪切头','来自装配体1的原始剪切机构。上剪、下剪刀片与推杆配合，通过专用安装适配件连接电钻本体，完成适用材料的剪切任务。'],pliers:['抓取与操作','钳头','通过共用平台实现对适用部件的受控抓取与操作。']};
-function setAttachment(key,sync=true){const d=attachmentData[key];if(!d||!detail)return;const zh=language==='zh',tr=attachmentZh[key];detail.setAttribute('data-i18n-skip','');detail.innerHTML='<div class="attachment-visual" aria-hidden="true"><svg viewBox="0 0 180 180">'+d.icon+'</svg></div><div class="attachment-copy"><small>'+(zh?tr[0]:d.role)+'</small><h3>'+(zh?tr[1]:d.title)+'</h3><p>'+(zh?tr[2]:d.description)+'</p><a class="btn btn-ghost" href="#explore">'+(zh?'在 3D 中查看接头':'Inspect this head in 3D')+'</a></div>';tabs.forEach(tab=>{const selected=tab.dataset.attachment===key;tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;});if(sync)window.dispatchEvent(new CustomEvent('attachment-choice',{detail:{head:key}}));}
-tabs.forEach((tab,index)=>{tab.addEventListener('click',()=>setAttachment(tab.dataset.attachment));tab.addEventListener('keydown',event=>{if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();const next=(index+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;tabs[next].focus();setAttachment(tabs[next].dataset.attachment);}});});
-if(tabs.length)setAttachment('driver');
-window.addEventListener('site-language-change',()=>{const current=[...tabs].find(tab=>tab.getAttribute('aria-selected')==='true');if(current)setAttachment(current.dataset.attachment,false);});
-window.addEventListener('cad-head-change',e=>setAttachment(e.detail.head,false));
+const attachmentPanel = document.getElementById('attachment-detail');
+if (attachmentPanel) {
+  const tabs = [...document.querySelectorAll('[data-attachment]')];
+  const tabList = tabs[0].closest('[role="tablist"]');
+  const artwork = attachmentPanel.querySelector('.task-art img');
+  const description = attachmentPanel.querySelector('.task-notes p');
+  const inspect = attachmentPanel.querySelector('.detail-link');
+  const horizontal = matchMedia('(max-width: 760px)');
+  const descriptions = {
+    driver: [
+      'A socket-style head for tightening and loosening compatible hex fasteners.',
+      '套筒式接头，用于紧固和松开匹配的六角紧固件。'
+    ],
+    scissors: [
+      'Paired blades open and close through a linkage for controlled cutting.',
+      '连杆驱动两片刀刃开合，用于剪切作业。'
+    ],
+    pliers: [
+      'Opposing jaws close around compatible parts for controlled gripping.',
+      '成对钳口向内闭合，用于抓取贴合的零件。'
+    ]
+  };
+  let selectedHead;
+
+  function showAttachment(key,sync = true) {
+    const tab = tabs.find(button => button.dataset.attachment === key);
+    if (!tab) return;
+    if (selectedHead !== key && (selectedHead || key !== 'driver')) {
+      artwork.src = `/assets/editorial/smarttorque-detail-${key}.webp`;
+    }
+    selectedHead = key;
+    const chinese = language === 'zh';
+    description.textContent = descriptions[key][chinese ? 1 : 0];
+    inspect.firstChild.nodeValue = chinese ? '在 3D 中查看 ' : 'View in 3D ';
+    attachmentPanel.setAttribute('aria-labelledby',tab.id);
+    for (const button of tabs) {
+      const selected = button === tab;
+      button.setAttribute('aria-selected',String(selected));
+      button.tabIndex = selected ? 0 : -1;
+    }
+    if (sync) window.dispatchEvent(new CustomEvent('attachment-choice',{detail:{head:key}}));
+  }
+
+  function orientTabList() {
+    tabList.setAttribute('aria-orientation',horizontal.matches ? 'horizontal' : 'vertical');
+  }
+
+  tabs.forEach((tab,index) => {
+    tab.addEventListener('click',() => showAttachment(tab.dataset.attachment));
+    tab.addEventListener('keydown',event => {
+      const previous = horizontal.matches ? 'ArrowLeft' : 'ArrowUp';
+      const next = horizontal.matches ? 'ArrowRight' : 'ArrowDown';
+      let indexToFocus;
+      if (event.key === previous) indexToFocus = (index+tabs.length-1)%tabs.length;
+      else if (event.key === next) indexToFocus = (index+1)%tabs.length;
+      else if (event.key === 'Home') indexToFocus = 0;
+      else if (event.key === 'End') indexToFocus = tabs.length-1;
+      else return;
+      event.preventDefault();
+      tabs[indexToFocus].focus();
+      showAttachment(tabs[indexToFocus].dataset.attachment);
+    });
+  });
+  horizontal.addEventListener('change',orientTabList);
+  window.addEventListener('site-language-change',() => showAttachment(selectedHead,false));
+  window.addEventListener('cad-head-change',event => showAttachment(event.detail.head,false));
+  orientTabList();
+  showAttachment('driver',false);
+}
 
 
 

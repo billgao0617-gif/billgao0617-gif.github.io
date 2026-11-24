@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { VRMLLoader } from 'three/addons/loaders/VRMLLoader.js';
+import { cloneCadPart, loadCadManifest, solidWorksMatrix as swMatrix, isBodyPart, curvedRetentionSeat } from './cad-assets.js?v=8d65b9b8b487';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { Mechanism } from './mechanism.js';
+import { Mechanism } from './mechanism.js?v=84d3a46e6944';
 
 const root = document.getElementById('model-viewer');
 if (root) {
@@ -38,9 +38,6 @@ if (root) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = document.documentElement.dataset.theme==='light'?.94:1.05;
   host.appendChild(renderer.domElement);
-  const explorerHost=host.parentElement,voiceHost=$('voice-model-mount');
-  let voiceState=null,voiceLinked=false,voiceFrom=0,voiceTo=0,voiceStart=0;
-  let voiceVisible=false,explorerWasExploded=false;
   const pmrem = new THREE.PMREMGenerator(renderer);
   const room = new RoomEnvironment();
   scene.environment = pmrem.fromScene(room,.03).texture;
@@ -69,12 +66,12 @@ if (root) {
   const model = new THREE.Group();
   // Flip the complete horizontal tool so its grip is below the powered body.
   model.rotation.set(Math.PI,0,-Math.PI/2);scene.add(model);
-  const loader=new VRMLLoader(), fileCache=new Map();
   const handoff = new URLSearchParams(location.search).get('view') === 'operation';
   let manifest,base=[],heads={},retention=[],parts=[],head='driver',showRetention=!handoff,exploded=false,selected=null,animation=null,selectionBoxes=[];
   let ready=false,scale=.3,assembledBounds,expandedBounds;
   let renderPending=false,dirty=true,listParts=null,listLanguage=-1;
   const materials=new Map();
+  const usesDarkSteel = () => document.documentElement.dataset.theme === 'light';
   const sideMark=new THREE.TextureLoader().load('/assets/gabbrotech-symbol.webp',()=>invalidate());
   const bodyToDisplay=new THREE.Matrix4();
   let motionDirty=false,lastMotionUI=0,actionLimit=0;
@@ -82,7 +79,7 @@ if (root) {
   function invalidate(){dirty=true;if(!renderPending){renderPending=true;requestAnimationFrame(render);}}
   controls.addEventListener('change',invalidate);
   controls.addEventListener('start',()=>{if(animation){animation.cameraTo=null;animation.targetTo=null;}invalidate();});
-  const defaultDirection=new THREE.Vector3(.08,.14,1).normalize();
+  const defaultDirection=new THREE.Vector3(.28,.16,1).normalize();
   const right=new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0),defaultDirection).normalize();
   const up=new THREE.Vector3().crossVectors(defaultDirection,right).normalize();
   const english=()=>window.siteLanguage?.()!=='zh';
@@ -114,13 +111,16 @@ if (root) {
     [/^M3x6\+6/,['LCD mounting screw · M3×6+6','LCD 安装螺丝 · M3×6+6'],['LCD mounting hardware','LCD 固定结构'],['An original M3×6+6 mounting fastener from the updated assembly, connecting the LCD support to the powered body. All instances retain their CAD positions.','来自更新装配体的 M3×6+6 安装螺丝，用于连接 LCD 屏幕支撑与电钻本体。所有实例均保留原 CAD 安装位置。'],'metal'],
     [/主轴螺钉|销钉|螺母|M\d/,['Retained fastener','紧固与定位件'],['Retention hardware','固定结构'],['This original CAD fastener or locating part secures the adjacent mechanical components.','原 CAD 中的紧固或定位零件，用于固定相邻机械部件。'],'metal'],
     [/环扣.*弧形/,['Curved tether ring','弧形系留环'],['Anti-loss system','防丢失系统'],['The curved ring provides a connection point for tethering the tool during handling.','弧形系留环为工具提供系留连接点，降低操作过程中漂浮或丢失的风险。'],'metal'],
-    [/扣环.*打印/,['Printed retention collar','打印防丢失扣环'],['Body adaptation','本体适配'],['The printed collar adapts the retention structure to the drill body. Its placement here is a fit visualization.','打印扣环将防丢失结构与电钻本体适配；页面中的安装位置为适配展示。'],'printed']
   ];
   function info(name){const hit=descriptions.find(item=>item[0].test(name));return hit?{name:hit[1],category:hit[2],description:hit[3],material:hit[4]}:{name:[clean(name),clean(name)],category:['CAD component','CAD 部件'],description:['An independent part from the supplied CAD assembly.','来自提供的 CAD 装配体的独立零件。'],material:'metal'};}
   function materialFor(kind){
     if(materials.has(kind))return materials.get(kind);
     const settings={metal:{color:0xb7c6cf,metalness:.88,roughness:.23},gold:{color:0xb5a377,metalness:.8,roughness:.27},sensor:{color:0x375466,metalness:.5,roughness:.31},pcb:{color:0x1a6357,metalness:.2,roughness:.39},screen:{color:0x0b2934,metalness:.35,roughness:.13},printed:{color:0x435966,metalness:.15,roughness:.5},carbon:{color:0x25313a,metalness:.26,roughness:.3}};
-    const mat=new THREE.MeshStandardMaterial({...settings[kind],side:THREE.DoubleSide});
+    const mat=new THREE.MeshStandardMaterial({...(kind==='head-steel'?settings.metal:settings[kind]),side:THREE.DoubleSide});
+    if(kind==='head-steel'){
+      mat.color.setHex(usesDarkSteel()?0x778794:0xa7b7c3);
+      mat.roughness=usesDarkSteel()?.38:.27;
+    }
     if(kind==='carbon'){
       mat.color.set(0x314c65);mat.metalness=.63;mat.roughness=.34;
       mat.onBeforeCompile=shader=>{
@@ -132,18 +132,17 @@ if (root) {
     }
     materials.set(kind,mat);return mat;
   }
-  function swMatrix(a){if(!a)return new THREE.Matrix4();const s=a[12]||1;return new THREE.Matrix4().set(a[0]*s,a[3]*s,a[6]*s,a[9],a[1]*s,a[4]*s,a[7]*s,a[10],a[2]*s,a[5]*s,a[8]*s,a[11],0,0,0,1);}
-  async function loadFile(url){if(!fileCache.has(url))fileCache.set(url,fetch(url).then(r=>{if(!r.ok)throw new Error(url);return r.text();}).then(text=>loader.parse(text,'')));return (await fileCache.get(url)).clone(true);}
   async function loadPart(record){
-    const object=new THREE.Group(),geometry=await loadFile(record.url),nativeBounds=new THREE.Box3().setFromObject(geometry);
+    const object=new THREE.Group(),geometry=await cloneCadPart(record.url),nativeBounds=new THREE.Box3().setFromObject(geometry);
     geometry.updateMatrixWorld(true);
     const selectionBounds=new THREE.Box3(),inverseGeometry=geometry.matrixWorld.clone().invert();
     geometry.traverse(child=>{if(!child.isMesh)return;child.geometry.computeBoundingBox();const localTransform=inverseGeometry.clone().multiply(child.matrixWorld);selectionBounds.union(child.geometry.boundingBox.clone().applyMatrix4(localTransform));});
     object.add(geometry);object.applyMatrix4(swMatrix(record.transform));
     const details=info(record.partName||record.cadName);
     if(/^M3x6\+6/.test(record.partName||'')){const instance=record.cadName.match(/-(\d+)$/)?.[1];if(instance)details.name=details.name.map(name=>`${name} · ${instance}`);}
-    geometry.traverse(child=>{if(child.isMesh)child.material=materialFor(details.material);});
-    return {...record,object,geometry,nativeBounds,selectionBounds,geometryRestQuaternion:geometry.quaternion.clone(),geometryRestPosition:geometry.position.clone(),...details,start:object.position.clone(),offset:new THREE.Vector3()};
+    const steelHead=/上剪|下剪|上钳|下钳|^_+/.test(record.partName??'')||record.id==='retention-0';
+    geometry.traverse(child=>{if(child.isMesh)child.material=materialFor(steelHead?'head-steel':details.material);});
+    return {...record,partName:record.partName||record.cadName,object,geometry,nativeBounds,selectionBounds,geometryRestQuaternion:geometry.quaternion.clone(),geometryRestPosition:geometry.position.clone(),...details,start:object.position.clone(),offset:new THREE.Vector3()};
   }
   function corners(box){const a=[];for(const x of [box.min.x,box.max.x])for(const y of [box.min.y,box.max.y])for(const z of [box.min.z,box.max.z])a.push(new THREE.Vector3(x,y,z));return a;}
   function currentBounds(){const b=new THREE.Box3();parts.forEach(p=>b.union(new THREE.Box3().setFromObject(p.object)));return b;}
@@ -153,11 +152,11 @@ if (root) {
     const dir=reset?defaultDirection:camera.position.clone().sub(controls.target).normalize();if(!dir.lengthSq())dir.copy(defaultDirection);
     const r=new THREE.Vector3().crossVectors(camera.up,dir).normalize(),u=new THREE.Vector3().crossVectors(dir,r).normalize();
     let w=0,h=0,depth=0;corners(bounds).forEach(p=>{p.sub(center);w=Math.max(w,Math.abs(p.dot(r)));h=Math.max(h,Math.abs(p.dot(u)));depth=Math.max(depth,Math.abs(p.dot(dir)));});
-    const rect=host.getBoundingClientRect(),inline=host.parentElement===voiceHost;
+    const rect=host.getBoundingClientRect();
     if(!rect.width||!rect.height)return;
-    const usableW=inline?.96:.90,usableH=inline?.93:.88;
+    const usableW=.90,usableH=.88;
     const vfov=THREE.MathUtils.degToRad(camera.fov*.5),hfov=Math.atan(Math.tan(vfov)*camera.aspect);
-    const distance=Math.max(w/(Math.tan(hfov)*usableW),h/(Math.tan(vfov)*usableH)) * (inline?1.02:1.1)+depth;
+    const distance=Math.max(w/(Math.tan(hfov)*usableW),h/(Math.tan(vfov)*usableH)) * 1.1+depth;
     camera.clearViewOffset();
     const position=center.clone().addScaledVector(dir,distance);
     if(transition&&animation){animation.cameraFrom=camera.position.clone();animation.cameraTo=position;animation.targetFrom=controls.target.clone();animation.targetTo=center;}
@@ -167,23 +166,6 @@ if (root) {
   }
   function resize(){const {width,height}=host.getBoundingClientRect();if(!width||!height)return;camera.aspect=width/height;camera.updateProjectionMatrix();renderer.setSize(width,height,false);if(ready)frame(exploded?expandedBounds:assembledBounds);invalidate();}
   new ResizeObserver(resize).observe(host);
-  function assembleVoiceTool(){
-    if(!ready)return;
-    animation=null;exploded=false;mechanism.restore();parts.forEach(p=>p.object.position.copy(p.start));
-    mechanism.setPhase(voiceState?.phase||0);frame(assembledBounds,true);renderInfo();
-  }
-  function syncVoiceHost(){
-    const workspace=document.querySelector('[data-voice-workspace]');
-    const useVoice=voiceVisible&&(!workspace||!workspace.hidden);
-    const destination=useVoice?voiceHost:explorerHost;
-    if(!destination||host.parentElement===destination)return;
-    if(useVoice){explorerWasExploded=exploded;destination.append(host);assembleVoiceTool();}
-    else{destination.append(host);if(ready&&explorerWasExploded){animation=null;exploded=true;mechanism.restore();parts.forEach(p=>p.object.position.copy(p.start).add(p.offset));renderInfo();}}
-    resize();
-  }
-  if(voiceHost){
-    new IntersectionObserver(entries=>{voiceVisible=entries[0].isIntersecting;syncVoiceHost();}, {rootMargin:'-70px 0px 0px 0px',threshold:0}).observe($('voice'));
-  }
   function projectBounds(box){let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;corners(box).forEach(p=>{const x=p.dot(right),y=p.dot(up);x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);});return{x0,x1,y0,y1};}
   function moveRect(rect,vx,vy){rect.x0+=vx;rect.x1+=vx;rect.y0+=vy;rect.y1+=vy;}
   function layout(){
@@ -255,7 +237,7 @@ if (root) {
     });
     renderInfo();invalidate();
   }
-  function setExploded(value,reset=false){if(!ready||value&&host.parentElement===voiceHost)return;mechanism.reset();exploded=value;animation={start:performance.now(),from:parts.map(p=>p.object.position.clone()),to:parts.map(p=>p.start.clone().addScaledVector(p.offset,value?1:0)),duration:matchMedia('(prefers-reduced-motion: reduce)').matches?0:900,samples:[],last:0};if(!value)select(null);frame(value?expandedBounds:assembledBounds,reset,true);renderInfo();invalidate();}
+  function setExploded(value,reset=false){if(!ready)return;mechanism.reset();exploded=value;animation={start:performance.now(),from:parts.map(p=>p.object.position.clone()),to:parts.map(p=>p.start.clone().addScaledVector(p.offset,value?1:0)),duration:matchMedia('(prefers-reduced-motion: reduce)').matches?0:900,samples:[],last:0};if(!value)select(null);frame(value?expandedBounds:assembledBounds,reset,true);renderInfo();invalidate();}
   function showHead(key){if(!ready||!heads[key])return;mechanism.reset();animation=null;selected=null;[...base,...Object.values(heads).flat(),...retention].forEach(p=>{p.object.removeFromParent();p.object.position.copy(p.start);});parts=[...base,...heads[key],...(showRetention?retention:[])];parts.forEach(p=>model.add(p.object));head=key;mechanism.setParts(parts,key);layout();select(null);if(exploded)parts.forEach(p=>p.object.position.copy(p.start).add(p.offset));frame(exploded?expandedBounds:assembledBounds,true);renderInfo();window.dispatchEvent(new CustomEvent('cad-head-change',{detail:{head:key}}));}
   function alignHeads(){
     const normalize=name=>clean(name).replace(/\s+/g,'');
@@ -268,22 +250,17 @@ if (root) {
     const drill=fullMain.find(p=>normalize(p.partName)==='电钻');
     if(drill)bodyToDisplay.makeRotationFromEuler(model.rotation).multiply(swMatrix(drill.transform));
     Object.values(heads).forEach(group=>{const source=group.find(p=>normalize(p.partName)===commonName);const registration=swMatrix(anchor.transform).multiply(swMatrix(source.transform).invert());group.forEach(p=>{p.object.applyMatrix4(registration);p.start.copy(p.object.position);});});
-    const core=part=>/^(电钻|编码|Arduino|语音|LCD|齿轮舵机座|力矩盘|舵机|盖板|电磁铁|M3x6\+6)/.test(part.partName);
-    base=fullMain.filter(core);
-    Object.keys(heads).forEach(key=>{heads[key]=heads[key].filter(part=>part.visible!==false&&!core(part));});
+    base=fullMain.filter(isBodyPart);
+    Object.keys(heads).forEach(key=>{heads[key]=heads[key].filter(part=>part.visible!==false&&!isBodyPart(part));});
     heads.driver.forEach(part=>{if(/^_+/.test(part.partName)){part.name=['Nut-driver socket component','螺母驱动套筒组件'];part.category=['Nut-driver attachment','螺母螺丝刀接头'];part.description=['An original component from the supplied nut-driver subassembly, installed through its dedicated mounting interface.','来自提供的螺母螺丝刀子装配体，通过专用安装接口与动力本体适配。'];}});
   }
   function fitRetention(){
-    const body=base.find(p=>p.material==='carbon');if(!body||!retention.length)return;
-    model.add(body.object);model.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(body.object),size=box.getSize(new THREE.Vector3());
-    const nativeBox=new THREE.Box3();retention.forEach(p=>nativeBox.union(new THREE.Box3().setFromObject(p.object)));
-    const nativeCenter=nativeBox.getCenter(new THREE.Vector3()),grip=box.getCenter(new THREE.Vector3());
-    grip.y=box.min.y+size.y*.24;grip.x=box.min.x+size.x*.23;grip.z=box.max.z+.006;
-    // The two supplied ring parts share a native coordinate system. Keep that
-    // relationship and their original dimensions; show the pair on the near grip face.
-    const worldPose=new THREE.Matrix4().makeTranslation(grip.x-nativeCenter.x,grip.y-nativeCenter.y,grip.z-nativeCenter.z);
-    const localPose=model.matrixWorld.clone().invert().multiply(worldPose);
-    retention.forEach(part=>{part.object.applyMatrix4(localPose);part.start.copy(part.object.position);});
+    const [ring]=retention;
+    if(!ring)return;
+    model.updateMatrixWorld(true);
+    const localPose=model.matrixWorld.clone().invert().multiply(curvedRetentionSeat());
+    localPose.decompose(ring.object.position,ring.object.quaternion,ring.object.scale);
+    ring.start.copy(ring.object.position);
   }
   function renderMotionUI(force=false){
     const now=performance.now();if(!force&&now-lastMotionUI<80)return;lastMotionUI=now;
@@ -297,36 +274,7 @@ if (root) {
     $('motion-description').textContent=actions[head][english()?0:1]+t(' · drag a gear in the exploded view or use the slider.',' · 可直接拖动爆炸图中的齿轮，或使用滑杆。');
     $('motion-note').textContent=t('Working-principle illustration · not a load or performance simulation','工作原理示意 · 非受力或性能仿真');
   }
-  function renderVoiceResponse(){
-    if(!$('voice-model-state'))return;
-    const note=$('voice-model-note');
-    document.querySelectorAll('[data-voice-head]').forEach(button=>{button.disabled=!ready;button.setAttribute('aria-pressed',String(button.dataset.voiceHead===head));});
-    if(!ready){$('voice-model-state').textContent=t('LOADING CAD','载入 CAD 中');return;}
-    $('voice-model-state').textContent=voiceState?.trigger&&voiceState?.stopped?t('TARGET REACHED · STOPPED','达到圈数 · 已停止'):voiceState?.trigger&&voiceState?.direction?t('RUNNING','运行中'):t('READY · TRIGGER RELEASED','待作业 · 扳机已松开');
-    $('voice-model-count').textContent=voiceState?`${voiceState.count.toFixed(2)} / ${voiceState.mode==='auto'?voiceState.turns:'—'} ${t('turns','圈')}`:'0.00';
-    note.textContent=voiceState?.blocked?t('Setting held: release the trigger (0 V) first.','设置未改变：请先松开扳机（0 V）。'):voiceState?.applied===5?t('Unlock command: the paired electromagnet locking components are highlighted.','开锁指令：同时高亮双电磁铁锁止组件。'):voiceState?.applied>=17?t(`Torque level ${voiceState.torque}: control hardware highlighted.`, `扭矩 ${voiceState.torque} 档：高亮扭矩控制结构。`):voiceState?.awake?t('Command applied · motion commands demonstrate the trigger sequence.','指令已应用 · 运行类指令自动演示扳机流程。'):t('Wake first, click a command, then press the trigger.','先唤醒，点击指令，再按下扳机。');
-  }
-  window.addEventListener('voice-tool-state',event=>{
-    const previous=voiceState;voiceState=event.detail;voiceLinked=true;
-    syncVoiceHost();
-    if(!ready){renderVoiceResponse();return;}
-    if(host.parentElement===voiceHost&&exploded)assembleVoiceTool();
-    mechanism.stop();
-    if(voiceState.stopped){mechanism.setPhase(voiceState.phase);renderMotionUI(true);}
-    voiceFrom=mechanism.phase;voiceTo=voiceState.phase;voiceStart=performance.now();
-    if(voiceState.applied!==previous?.applied&&!voiceState.blocked){
-      const pattern=voiceState.applied===5?/^电磁铁/:voiceState.applied>=17?/力矩盘/:voiceState.applied>=10&&voiceState.applied<=13?/^编码器/:voiceState.applied>=14&&voiceState.applied<=16?/^电钻/:voiceState.applied===6||voiceState.applied===7?/^Arduino/:voiceState.applied===8||voiceState.applied===9?/力矩盘/:null;
-      if(pattern){const part=parts.find(p=>pattern.test(p.partName));if(part){select(part);selectionBoxes.forEach(box=>{box.material.depthTest=false;box.material.depthWrite=false;});}}
-    }
-    renderVoiceResponse();invalidate();
-  });
-  window.addEventListener('site-language-change',renderVoiceResponse);
-  document.querySelectorAll('[data-voice-head]').forEach(button=>button.addEventListener('click',()=>{
-    if(host.parentElement===voiceHost)exploded=false;
-    showHead(button.dataset.voiceHead);voiceFrom=voiceTo=voiceState?.phase||0;mechanism.setPhase(voiceTo);renderVoiceResponse();
-    document.querySelectorAll('[data-voice-head]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
-  }));
-  $('motion-play').addEventListener('click',()=>{if(!ready)return;voiceLinked=false;if(animation){animation=null;parts.forEach(p=>p.object.position.copy(p.start).addScaledVector(p.offset,exploded?1:0));frame(exploded?expandedBounds:assembledBounds);}if(mechanism.running) {
+  $('motion-play').addEventListener('click',()=>{if(!ready)return;if(animation){animation=null;parts.forEach(p=>p.object.position.copy(p.start).addScaledVector(p.offset,exploded?1:0));frame(exploded?expandedBounds:assembledBounds);}if(mechanism.running) {
       mechanism.stop();
     } else {
       actionLimit = head === 'driver' ? Math.PI : Math.PI * 2;
@@ -334,26 +282,31 @@ if (root) {
       mechanism.play();
     }
     renderMotionUI(true);});
-  $('motion-reset').addEventListener('click',()=>{voiceLinked=false;mechanism.reset();renderMotionUI(true);});
-  $('drive-slider').addEventListener('input',e=>{voiceLinked=false;if(animation){animation=null;parts.forEach(p=>p.object.position.copy(p.start).addScaledVector(p.offset,exploded?1:0));frame(exploded?expandedBounds:assembledBounds);}mechanism.setPhase(Number(e.target.value)*Math.PI/180);renderMotionUI(true);});
+  $('motion-reset').addEventListener('click',()=>{mechanism.reset();renderMotionUI(true);});
+  $('drive-slider').addEventListener('input',e=>{if(animation){animation=null;parts.forEach(p=>p.object.position.copy(p.start).addScaledVector(p.offset,exploded?1:0));frame(exploded?expandedBounds:assembledBounds);}mechanism.setPhase(Number(e.target.value)*Math.PI/180);renderMotionUI(true);});
   let down,moved=false,gearDrag=null;const ray=new THREE.Raycaster();
   function hitPart(e){const r=host.getBoundingClientRect();ray.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),camera);const hit=ray.intersectObject(model,true)[0];return hit?parts.find(p=>p.object.getObjectById(hit.object.id)):null;}
   renderer.domElement.addEventListener('pointerdown',e=>{
     controls.autoRotate=false;$('rotate-button').setAttribute('aria-pressed','false');down=[e.clientX,e.clientY];moved=false;
-    if(ready&&exploded&&!animation&&e.button===0&&host.parentElement!==voiceHost){const part=hitPart(e);if(mechanism.isGear(part)){voiceLinked=false;mechanism.stop();select(part);controls.enabled=false;gearDrag={id:e.pointerId,x:e.clientX,y:e.clientY,phase:mechanism.phase,ratio:/舵机15齿/.test(part.partName)?-.5:1};renderer.domElement.setPointerCapture(e.pointerId);renderer.domElement.style.cursor='ew-resize';e.preventDefault();e.stopImmediatePropagation();}}
+    if(ready&&exploded&&!animation&&e.button===0){const part=hitPart(e);if(mechanism.isGear(part)){mechanism.stop();select(part);controls.enabled=false;gearDrag={id:e.pointerId,x:e.clientX,y:e.clientY,phase:mechanism.phase,ratio:/舵机15齿/.test(part.partName)?-.5:1};renderer.domElement.setPointerCapture(e.pointerId);renderer.domElement.style.cursor='ew-resize';e.preventDefault();e.stopImmediatePropagation();}}
   },true);
   renderer.domElement.addEventListener('pointermove',e=>{if(down&&Math.hypot(e.clientX-down[0],e.clientY-down[1])>5)moved=true;if(gearDrag&&e.pointerId===gearDrag.id){const phase=gearDrag.phase+((e.clientX-gearDrag.x)-(e.clientY-gearDrag.y))*.022*gearDrag.ratio;mechanism.setPhase((phase%(Math.PI*4)+Math.PI*4)%(Math.PI*4));renderMotionUI(true);e.preventDefault();}});
   function finishDrag(){if(gearDrag){gearDrag=null;controls.enabled=true;renderer.domElement.style.cursor='';down=null;invalidate();return true;}return false;}
   renderer.domElement.addEventListener('pointercancel',finishDrag);
   renderer.domElement.addEventListener('lostpointercapture',finishDrag);
-  renderer.domElement.addEventListener('pointerup',e=>{if(finishDrag())return;down=null;if(!ready||moved||e.button!==0)return;const part=hitPart(e);if(!part)return;if(host.parentElement===voiceHost){select(part);return;}if(exploded)select(part);});
+  renderer.domElement.addEventListener('pointerup',e=>{if(finishDrag())return;down=null;if(!ready||moved||e.button!==0)return;const part=hitPart(e);if(!part)return;if(exploded)select(part);});
   $('explode-button').addEventListener('click',()=>{showPicker(false);setExploded(!exploded);});
   $('reset-button').addEventListener('click',()=>{controls.autoRotate=false;$('rotate-button').setAttribute('aria-pressed','false');setExploded(false,true);});
   $('rotate-button').addEventListener('click',()=>{controls.autoRotate=!controls.autoRotate;$('rotate-button').setAttribute('aria-pressed',String(controls.autoRotate));invalidate();});
   document.querySelectorAll('[data-head]').forEach(b=>{b.disabled=true;b.addEventListener('click',()=>{showHead(b.dataset.head);showPicker(false,true);});});
   $('retention-button').disabled=true;$('retention-button').addEventListener('click',()=>{showRetention=!showRetention;showHead(head);});
   window.addEventListener('site-language-change',renderInfo);
-  window.addEventListener('site-theme-change',()=>{renderer.toneMappingExposure=document.documentElement.dataset.theme==='light'?.94:1.05;invalidate();});
+  window.addEventListener('site-theme-change',()=>{
+    renderer.toneMappingExposure=usesDarkSteel()?.94:1.05;
+    const steel=materials.get('head-steel');
+    if(steel){steel.color.setHex(usesDarkSteel()?0x778794:0xa7b7c3);steel.roughness=usesDarkSteel()?.38:.27;}
+    invalidate();
+  });
   window.addEventListener('attachment-choice',e=>showHead(e.detail.head));
   document.querySelectorAll('[data-show-retention]').forEach(button=>button.addEventListener('click',()=>{showRetention=true;showHead(head);setExploded(true);select(retention[0]);}));
   function render(now){
@@ -376,18 +329,14 @@ if (root) {
     // Camera framing owns the camera only during its transition. Orbit controls
     // resume immediately after a drag or at the final animation frame.
     const controlsChanged=(!active?.cameraTo||!animation)?controls.update():false;
-    const voiceProgress=Math.min(1,(now-voiceStart)/100);
-    const voiceMoving=voiceLinked&&ready&&Math.abs(mechanism.phase-voiceTo)>.00001;
-    if(voiceMoving&&!animation){mechanism.setPhase(THREE.MathUtils.lerp(voiceFrom,voiceTo,voiceProgress));if(voiceProgress===1)renderMotionUI(true);}
     const moving=mechanism.step(now);
     if(moving && mechanism.phase >= actionLimit){mechanism.setPhase(actionLimit);renderMotionUI(true);}
-    document.querySelector('.voice-motion-dial')?.style.setProperty('--motion-phase',`${mechanism.phase*180/Math.PI}deg`);
     if(motionDirty){motionDirty=false;renderMotionUI();dirty=true;}
     if(dirty||controlsChanged||controls.autoRotate){renderer.render(scene,camera);dirty=false;}
-    if(animation||controls.autoRotate||controlsChanged||moving||voiceMoving)invalidate();
+    if(animation||controls.autoRotate||controlsChanged||moving)invalidate();
   }
   resize();invalidate();
-  (async()=>{manifest=await fetch('/assets/cad/manifest.json').then(r=>{if(!r.ok)throw new Error('CAD manifest unavailable');return r.json();});base=await Promise.all(manifest.main.map(loadPart));heads.scissors=base;heads.pliers=await Promise.all(manifest.pliers.map(loadPart));heads.driver=await Promise.all(manifest.driver.map(loadPart));retention=await Promise.all(manifest.retention.map(loadPart));alignHeads();fitRetention();ready=true;const requested=new URLSearchParams(location.search);showHead(['scissors','pliers','driver'].includes(requested.get('head'))?requested.get('head'):'driver');if(handoff && head==='driver')mechanism.setPhase(Math.PI);const inspectionMap=new Map([['voice',/^语音/],['retention',/环扣/],['lcd',/^LCD/]]);const inspection=inspectionMap.get(requested.get('inspect'));if(inspection){const part=parts.find(p=>inspection.test(p.partName));if(part){setExploded(true);select(part);}}loading.hidden=true;$('cad-poster').hidden=true;document.querySelectorAll('#heads-button,[data-head],#retention-button,#explode-button,#reset-button,#motion-play,#motion-reset,#drive-slider').forEach(b=>b.disabled=false);window.applySiteLanguage?.();if(host.parentElement===voiceHost)assembleVoiceTool();renderInfo();renderVoiceResponse();window.dispatchEvent(new CustomEvent('cad-voice-ready'));console.info('SmartTorque authentic CAD loaded',{core:base.length,scissors:heads.scissors.length,pliers:heads.pliers.length,driver:heads.driver.length,retention:retention.length});})().catch(error=>{console.error('SmartTorque CAD load failed',error);loading.textContent=t('The CAD model could not load. Refresh to try again.','CAD 模型载入失败，请刷新后重试。');});
+  (async()=>{manifest=await loadCadManifest();base=await Promise.all(manifest.main.map(loadPart));heads.scissors=base;heads.pliers=await Promise.all(manifest.pliers.map(loadPart));heads.driver=await Promise.all(manifest.driver.map(loadPart));retention=await Promise.all(manifest.retention.filter(part=>part.id==='retention-0').map(loadPart));alignHeads();fitRetention();ready=true;const requested=new URLSearchParams(location.search);const initialHead=requested.get('head')??document.querySelector('[data-attachment][aria-selected=true]')?.dataset.attachment;showHead(['scissors','pliers','driver'].includes(initialHead)?initialHead:'driver');if(handoff && head==='driver')mechanism.setPhase(Math.PI);const inspectionMap=new Map([['voice',/^语音/],['retention',/环扣/],['lcd',/^LCD/]]);const inspection=inspectionMap.get(requested.get('inspect'));if(inspection){const part=parts.find(p=>inspection.test(p.partName));if(part){setExploded(true);select(part);}}loading.hidden=true;$('cad-poster').hidden=true;document.querySelectorAll('#heads-button,[data-head],#retention-button,#explode-button,#reset-button,#motion-play,#motion-reset,#drive-slider').forEach(b=>b.disabled=false);window.applySiteLanguage?.();renderInfo();console.info('SmartTorque authentic CAD loaded',{core:base.length,scissors:heads.scissors.length,pliers:heads.pliers.length,driver:heads.driver.length,retention:retention.length});})().catch(error=>{console.error('SmartTorque CAD load failed',error);loading.textContent=t('The CAD model could not load. Refresh to try again.','CAD 模型载入失败，请刷新后重试。');});
 }
 
 
