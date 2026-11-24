@@ -5,6 +5,8 @@ import { ease, voiceStart, tetherStart, positionStoryParts, attachmentAt, evaCam
 const story = document.querySelector('.smart-story');
 const stage = story.querySelector('.smart-story-stage');
 const page = document.documentElement;
+const navigationType = performance.getEntriesByType('navigation')[0]?.type;
+const isFirstNavigation = navigationType !== 'back_forward' && navigationType !== 'reload';
 const begin = story.querySelector('.smart-story-begin');
 const intro = story.querySelector('.smart-story-intro');
 const skip = intro.querySelector('a');
@@ -294,6 +296,7 @@ function disableMotion() {
   story.removeAttribute('data-playing');
   story.removeAttribute('data-started');
   fallback.hidden = false;
+  begin.hidden = true;
   preserveAnchor(anchor, priorTop);
   caption.hidden = true;
   intro.style.visibility = 'visible';
@@ -340,10 +343,11 @@ function enableMotion() {
   // Confirm the first GL frame before exposing the scroll cue.
   scene.render(frame);
   delete page.dataset.storyPreparing;
+  begin.hidden = false;
   preserveAnchor(anchor, priorTop);
   measure();
   const bounds = story.getBoundingClientRect();
-  if (preparing && !anchor && bounds.top <= innerHeight && bounds.bottom > stage.clientHeight && target > .018) {
+  if (isFirstNavigation && preparing && !anchor && bounds.top <= innerHeight && bounds.bottom > stage.clientHeight && target > .018) {
     // Continue from the opening shot after a fast first scroll on a cold load.
     scrollTo({top:sectionTop,behavior:'instant'});
     onScroll();
@@ -375,14 +379,14 @@ window.addEventListener('site-theme-change', () => {
   schedule();
 });
 begin.addEventListener('click', event => {
-  if (event.button || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+  if (event.button > 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
   event.preventDefault();
   // Start just far enough to make the first shot visible for keyboard users.
   story.focus({preventScroll:true});
   scrollTo({top:sectionTop + .082 * travel,behavior:'smooth'});
 });
 story.querySelector('[data-story-retry]').addEventListener('click', event => {
-  if (event.button || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+  if (event.button > 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
   event.preventDefault();
   history.replaceState(null,'','#product-story');
   story.scrollIntoView({block:'start',behavior:'instant'});

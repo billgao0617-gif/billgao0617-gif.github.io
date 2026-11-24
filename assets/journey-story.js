@@ -1,4 +1,6 @@
 const journey = document.querySelector('.journey');
+const navigationType = performance.getEntriesByType('navigation')[0]?.type;
+const isFirstNavigation = navigationType !== 'back_forward' && navigationType !== 'reload';
 const board = journey.querySelector('.journey-board');
 const viewport = board.querySelector('.journey-viewport');
 const rail = board.querySelector('.journey-rail');
@@ -436,7 +438,7 @@ function loadScene() {
     scene = result;
     if (width && height) scene.resize(width,height);
     journey.toggleAttribute('data-live',working);
-    if (working && inView && !chapterChosen && target > drawingHandoff && target < storyLength) {
+    if (isFirstNavigation && working && inView && !chapterChosen && target > drawingHandoff && target < storyLength) {
       positionAt(drawingHandoff);
     }
     refresh();

@@ -8,7 +8,7 @@
   </script><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071017"><title>SmartTorque — Intelligent EVA Multi-Tool | Gabbrotech</title><meta name="description" content="Explore SmartTorque: a concept for a voice-enabled, modular EVA handheld tool with programmable torque, speed and turn count."><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20fill='%23071017'/%3E%3Cpath%20d='M49%2017H22L14%2025v22h28l8-8V31H32v8h9v1H23V25h26z'%20fill='%2372e3f4'/%3E%3C/svg%3E"><link rel="stylesheet" href="/assets/site.css?v=studio1"><link rel="stylesheet" href="/assets/stage.css"><script defer src="/assets/site.js?v=768c9d5bfb41"></script><script defer src="/assets/voice.js?v=d822a60fa8a8"></script><script type="importmap">{"imports":{"three":"/assets/vendor/three-0.180.0/build/three.module.min.js","three/addons/":"/assets/vendor/three-0.180.0/examples/jsm/"}}</script><script type="module" src="/assets/viewer.js?v=eb0dca70a3a7"></script><link rel="stylesheet" href="/assets/editorial.css"><script defer src="/assets/editorial.js?v=operation1"></script><link rel="stylesheet" href="/assets/pages.css?v=nov11b"><link rel="stylesheet" href="/assets/layout-refinement.css?v=nov11d"><link rel="stylesheet" href="/assets/product-direct.css?v=nov14"><link rel="stylesheet" href="/assets/studio.css?v=studio1"><link rel="stylesheet" href="/assets/operation.css?v=1"><link rel="stylesheet" href="/assets/smarttorque-story.css?v=4925053c91e6"><script type="module">
     const page = document.documentElement;
     const story = document.getElementById('product-story');
-    import('/assets/smarttorque-story.js?v=d1911f567fdb').catch(() => {
+    import('/assets/smarttorque-story.js?v=101c2eaf676b').catch(() => {
       const bounds = story.getBoundingClientRect();
       delete page.dataset.storyPreparing;
       story.querySelector('.smart-story-fallback figcaption').hidden = false;
@@ -39,7 +39,7 @@
     </div>
     <div class="smart-story-prompt">
       <span class="smart-story-loading" role="status" data-en="Preparing the 3D demo…" data-zh="正在准备 3D 演示…">Preparing the 3D demo…</span>
-      <a class="smart-story-begin" href="#product-story">
+      <a class="smart-story-begin" href="#product-story" hidden>
         <span data-en="Scroll to explore in 3D" data-zh="向下滚动，开启 3D 演示">Scroll to explore in 3D</span>
         <span aria-hidden="true">↓</span>
       </a>
