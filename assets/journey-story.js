@@ -120,7 +120,9 @@ let finalPlateReady = false, lastFallbackIndex;
 let dirty = true, disposed = false, chapterChosen = false;
 const drawingHandoff = 1.82;
 const background = end.querySelector('img');
-background.decode().then(() => { finalPlateReady = true; refresh(); }).catch(() => {});
+const finalImageReady = () => { finalPlateReady = true; refresh(); };
+background.addEventListener('load',finalImageReady);
+if (background.complete && background.naturalWidth) finalImageReady();
 
 function refresh() {
   dirty = true;
@@ -463,7 +465,7 @@ function schedule() {
 function loadScene() {
   if (loaded || failed || !working) return;
   loaded = true;
-  import('./journey-scene.js?v=a5bb9a2cbaf7').then(({buildJourneyScene}) => buildJourneyScene(host)).then(result => {
+  import('./journey-scene.js?v=8a31eb83e197').then(({buildJourneyScene}) => buildJourneyScene(host)).then(result => {
     if (disposed) { result.release(); return; }
     scene = result;
     if (width && height) scene.resize(width,height);

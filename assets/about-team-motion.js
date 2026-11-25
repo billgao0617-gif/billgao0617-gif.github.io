@@ -9,7 +9,7 @@ let video;
 let crops = [];
 let frameRequest;
 let lastPaintedTime;
-let finished = false, started = false;
+let finished = false, started = false, retried = false;
 
 function finish() {
   if (finished) return;
@@ -68,7 +68,13 @@ function prepareVideo() {
   video.preload = 'auto';
   video.setAttribute('aria-hidden', 'true');
   video.tabIndex = -1;
-  video.addEventListener('error', finish, { once: true });
+  video.addEventListener('error', () => {
+    if (retried || started) { finish(); return; }
+    retried = true;
+    const source = new URL(team.dataset.teamVideo,location.href);
+    source.searchParams.set('retry','1');
+    video.src = source.href;
+  });
   video.addEventListener('ended', finish, { once: true });
   video.addEventListener('loadedmetadata', () => {
     const width = video.videoWidth / columns;

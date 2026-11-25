@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { cloneCadPart, loadCadManifest, solidWorksMatrix as swMatrix, isBodyPart, curvedRetentionSeat } from './cad-assets.js?v=adb15ad71e35';
+import { cloneCadPart, loadCadManifest, solidWorksMatrix as swMatrix, isBodyPart, curvedRetentionSeat } from './cad-assets.js?v=ee72ba9ae843';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { Mechanism } from './mechanism.js?v=84d3a46e6944';
 
@@ -60,7 +60,6 @@ function mountViewer(root) {
     loading.textContent = window.siteLanguage?.()==='zh' ? '此浏览器无法显示交互模型。下方可查看产品和接头。' : 'Interactive 3D is unavailable in this browser. Product and attachment details are below.';
     return;
   }
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = document.documentElement.dataset.theme==='light'?.94:1.05;
@@ -193,7 +192,7 @@ function mountViewer(root) {
     camera.near=Math.max(scale*.001,.00001);camera.far=Math.max(distance*20,scale*30);camera.updateProjectionMatrix();
     controls.minDistance=scale*.45;controls.maxDistance=scale*12;if(!transition)controls.update();invalidate();
   }
-  function resize(){const {width,height}=host.getBoundingClientRect();if(!width||!height)return;camera.aspect=width/height;camera.updateProjectionMatrix();renderer.setSize(width,height,false);if(ready)frame(exploded?expandedBounds:assembledBounds);invalidate();}
+  function resize(){const {width,height}=host.getBoundingClientRect();if(!width||!height)return;camera.aspect=width/height;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.45,Math.sqrt(850000/(width*height))));renderer.setSize(width,height,false);if(ready)frame(exploded?expandedBounds:assembledBounds);invalidate();}
   new ResizeObserver(resize).observe(host);
   function projectBounds(box){let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;corners(box).forEach(p=>{const x=p.dot(right),y=p.dot(up);x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);});return{x0,x1,y0,y1};}
   function moveRect(rect,vx,vy){rect.x0+=vx;rect.x1+=vx;rect.y0+=vy;rect.y1+=vy;}
@@ -365,7 +364,14 @@ function mountViewer(root) {
     if(animation||controls.autoRotate||controlsChanged||moving)invalidate();
   }
   resize();invalidate();
-  (async()=>{manifest=await loadCadManifest();base=await Promise.all(manifest.main.map(loadPart));heads.scissors=base;heads.pliers=await Promise.all(manifest.pliers.map(loadPart));heads.driver=await Promise.all(manifest.driver.map(loadPart));retention=await Promise.all(manifest.retention.filter(part=>part.id==='retention-0').map(loadPart));alignHeads();fitRetention();ready=true;const requested=new URLSearchParams(location.search);const inspectKey=root.dataset.inspect??requested.get('inspect');if(inspectKey==='retention')showRetention=true;const initialHead=requested.get('head')??document.querySelector('[data-attachment][aria-selected=true]')?.dataset.attachment;showHead(['scissors','pliers','driver'].includes(initialHead)?initialHead:'driver');if(handoff && head==='driver')mechanism.setPhase(Math.PI);inspectComponent(inspectKey);inspectButtons.forEach(button=>{button.disabled=false;});loading.hidden=true;$('cad-poster').hidden=true;document.querySelectorAll('#heads-button,[data-head],#retention-button,#explode-button,#reset-button,#motion-play,#motion-reset,#drive-slider').forEach(b=>b.disabled=false);window.applySiteLanguage?.();renderInfo();console.info('SmartTorque authentic CAD loaded',{core:base.length,scissors:heads.scissors.length,pliers:heads.pliers.length,driver:heads.driver.length,retention:retention.length});})().catch(error=>{console.error('SmartTorque CAD load failed',error);loading.textContent=t('The CAD model could not load. Refresh to try again.','CAD 模型载入失败，请刷新后重试。');});
+  (async()=>{manifest=await loadCadManifest();
+    const visibleOrReference=part=>part.visible!==false||isBodyPart(part)||/^(固定头|快拆座)/.test(part.partName);
+    [base,heads.pliers,heads.driver,retention]=await Promise.all([
+      ...[manifest.main,manifest.pliers,manifest.driver].map(parts=>Promise.all(parts.filter(visibleOrReference).map(loadPart))),
+      Promise.all(manifest.retention.filter(part=>part.id==='retention-0').map(loadPart))
+    ]);
+    heads.scissors=base;
+    alignHeads();fitRetention();ready=true;const requested=new URLSearchParams(location.search);const inspectKey=root.dataset.inspect??requested.get('inspect');if(inspectKey==='retention')showRetention=true;const initialHead=requested.get('head')??document.querySelector('[data-attachment][aria-selected=true]')?.dataset.attachment;showHead(['scissors','pliers','driver'].includes(initialHead)?initialHead:'driver');if(handoff && head==='driver')mechanism.setPhase(Math.PI);inspectComponent(inspectKey);inspectButtons.forEach(button=>{button.disabled=false;});loading.hidden=true;$('cad-poster').hidden=true;document.querySelectorAll('#heads-button,[data-head],#retention-button,#explode-button,#reset-button,#motion-play,#motion-reset,#drive-slider').forEach(b=>b.disabled=false);window.applySiteLanguage?.();renderInfo();console.info('SmartTorque authentic CAD loaded',{core:base.length,scissors:heads.scissors.length,pliers:heads.pliers.length,driver:heads.driver.length,retention:retention.length});})().catch(error=>{console.error('SmartTorque CAD load failed',error);loading.textContent=t('The CAD model could not load. Refresh to try again.','CAD 模型载入失败，请刷新后重试。');});
 }
 
 

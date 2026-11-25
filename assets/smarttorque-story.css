@@ -24,7 +24,8 @@ html[data-theme="light"] .smart-story {
   --story-pill-ink: #102f3e;
 }
 
-:is(html[data-story-preparing] .smart-story, .smart-story[data-playing]) { height: 730svh; }
+html[data-story-preparing] .smart-story { height: 155svh; }
+.smart-story[data-playing] { height: 730svh; }
 html[data-story-preparing] .smart-story-fallback { display: none; }
 .smart-story-stage {
   position: relative;

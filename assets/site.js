@@ -201,7 +201,7 @@ if (attachmentPanel) {
       '成对钳口向内闭合，用于抓取贴合的零件。'
     ]
   };
-  let selectedHead, artworkState = 'ready', artworkRequest = 0;
+  let selectedHead, artworkState = 'ready';
 
   function showArtworkStatus() {
     const chinese = language === 'zh';
@@ -212,23 +212,20 @@ if (attachmentPanel) {
       : (chinese ? '图片暂不可用，可在 3D 中查看此接头。' : 'Preview unavailable. View this head in 3D.');
   }
 
-  async function loadArtwork(tab) {
-    const request = ++artworkRequest;
+  function loadArtwork(tab) {
     artworkState = 'loading';
     showArtworkStatus();
     artwork.loading = 'eager';
+    artwork.removeAttribute('data-media-unavailable');
     artwork.src = tab.dataset.artwork;
-    try {
-      await artwork.decode();
-      if (request === artworkRequest) artworkState = 'ready';
-    } catch {
-      if (request === artworkRequest) artworkState = 'failed';
-    }
-    if (request === artworkRequest) showArtworkStatus();
   }
 
+  artwork.addEventListener('load', () => {
+    artworkState = 'ready';
+    showArtworkStatus();
+  });
   artwork.addEventListener('error', () => {
-    if (artworkState !== 'ready') return;
+    if (window.siteMediaRecovery && !artwork.hasAttribute('data-media-unavailable')) return;
     artworkState = 'failed';
     showArtworkStatus();
   });

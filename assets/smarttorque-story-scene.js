@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { cloneCadPart, loadCadManifest, solidWorksMatrix, isBodyPart } from './cad-assets.js?v=adb15ad71e35';
-import { addCommercialHousing, brushedMetal, makeBodyFinish, roundedDeck, deckShoulder, displayFit, makeStudioEnvironment } from './smarttorque-story-finish.js?v=7632a549065e';
+import { cloneCadPart, loadCadManifest, solidWorksMatrix, isBodyPart, warmCadPreview } from './cad-assets.js?v=ee72ba9ae843';
+import { addCommercialHousing, brushedMetal, makeBodyFinish, roundedDeck, deckShoulder, displayFit, makeStudioEnvironment, optionalWordmark } from './smarttorque-story-finish.js?v=9084e82e6d06';
 import { makeScreenReadout, makeWakeDisplay, makeWakeWaves } from './smarttorque-story-interface.js?v=7ce899e23fa6';
 import { Mechanism } from './mechanism.js?v=84d3a46e6944';
-import { makeSideTether } from './smarttorque-side-tether.js?v=ce4089a8d298';
+import { makeSideTether } from './smarttorque-side-tether.js?v=19fc82d99608';
 import { evaCamera } from './smarttorque-story-timeline.js?v=c19916e3a44c';
 
 const finish = (color, metalness, roughness) => new THREE.MeshPhysicalMaterial({
@@ -187,8 +187,12 @@ function makeFasteningScene(scene) {
 
 export async function buildStoryScene(host, {overview = false} = {}) {
   const renderer = new THREE.WebGLRenderer({antialias: true, alpha: true, powerPreference: 'high-performance'});
+  warmCadPreview();
+  const gl = renderer.getContext();
+  const debug = gl.getExtension('WEBGL_debug_renderer_info');
+  const software = debug && /swiftshader|llvmpipe|software/i.test(gl.getParameter(debug.UNMASKED_RENDERER_WEBGL));
+  const pixelBudget = software ? 460000 : 1150000;
   renderer.setClearColor(0, 0);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.06;
@@ -216,12 +220,8 @@ export async function buildStoryScene(host, {overview = false} = {}) {
   }
 
   try {
-    const [manifest,title] = await Promise.all([
-      loadCadManifest(),
-      new THREE.TextureLoader().loadAsync('/assets/editorial/smarttorque-wordmark.webp'),
-      document.fonts.load('760 40px Manrope')
-    ]);
-    title.colorSpace = THREE.SRGBColorSpace;
+    const manifest = await loadCadManifest();
+    const title = optionalWordmark();
     title.anisotropy = Math.min(12,renderer.capabilities.getMaxAnisotropy());
     const assemblies = {driver: manifest.driver, pliers: manifest.pliers, scissors: manifest.main};
     const drill = manifest.main.find(part => /^电钻/.test(cadName(part)));
@@ -350,7 +350,9 @@ export async function buildStoryScene(host, {overview = false} = {}) {
 
     host.appendChild(renderer.domElement);
     return {
+      frameInterval: software ? 1000/30 : 0,
       resize(width, height) {
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1,1.55,Math.sqrt(pixelBudget/(width*height))));
         renderer.setSize(width, height, false);
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
