@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { cloneCadPart, isBodyPart, loadCadManifest, solidWorksMatrix, warmCadPreview } from './cad-assets.js?v=ee72ba9ae843';
-import { addCommercialHousing, brushedMetal, deckShoulder, displayFit, makeBodyFinish, makeStudioEnvironment, optionalWordmark, roundedDeck } from './smarttorque-story-finish.js?v=9084e82e6d06';
+import { cloneCadPart, isBodyPart, loadCadManifest, solidWorksMatrix } from './cad-assets.js?v=adb15ad71e35';
+import { addCommercialHousing, brushedMetal, deckShoulder, displayFit, makeBodyFinish, makeStudioEnvironment, roundedDeck } from './smarttorque-story-finish.js?v=b0f44731fe7f';
 
 const orientation = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI, 0, -Math.PI / 2));
 const lerp = THREE.MathUtils.lerp;
@@ -364,9 +364,9 @@ function makeIntegratedHousing(tool, logo, glass) {
 
 export async function buildJourneyScene(host) {
   const renderer = new THREE.WebGLRenderer({alpha: true, antialias: true, powerPreference: 'high-performance'});
-  warmCadPreview();
   renderer.localClippingEnabled = true;
   renderer.setClearColor(0, 0);
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.65));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   const environment = makeStudioEnvironment(renderer);
   const scene = new THREE.Scene();
@@ -399,8 +399,10 @@ export async function buildJourneyScene(host) {
   }
 
   try {
-    const manifest = await loadCadManifest();
-    logo = optionalWordmark();
+    const [manifest,wordmark] = await Promise.all([
+      loadCadManifest(), new THREE.TextureLoader().loadAsync('/assets/editorial/smarttorque-wordmark.webp')
+    ]);
+    logo = wordmark;
     logo.colorSpace = THREE.SRGBColorSpace;
     logo.anisotropy = Math.min(12,renderer.capabilities.getMaxAnisotropy());
     const records = manifest.driver.filter(row => row.visible);
@@ -507,7 +509,6 @@ export async function buildJourneyScene(host) {
         width = w;
         height = h;
         camera.aspect = w / h;
-        renderer.setPixelRatio(Math.min(devicePixelRatio || 1,1.45,Math.sqrt(850000/(w*h))));
         renderer.setSize(w,h,false);
       },
       render(frame, marker) {

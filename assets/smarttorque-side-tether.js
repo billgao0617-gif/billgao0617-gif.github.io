@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { curvedRetentionSeat } from './cad-assets.js?v=ee72ba9ae843';
+import { curvedRetentionSeat } from './cad-assets.js?v=adb15ad71e35';
 import { evaCamera } from './smarttorque-story-timeline.js?v=c19916e3a44c';
 
 function piece(group, geometry, material, x=0, y=0, z=0) {

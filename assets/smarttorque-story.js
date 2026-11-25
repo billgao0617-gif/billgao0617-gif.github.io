@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { buildStoryScene } from './smarttorque-story-scene.js?v=3110dfe99c7b';
+import { buildStoryScene } from './smarttorque-story-scene.js?v=7335e0895730';
 import { ease, voiceStart, tetherStart, positionStoryParts, attachmentAt, evaCamera, storyProgress } from './smarttorque-story-timeline.js?v=c19916e3a44c';
 
 const story = document.querySelector('.smart-story');
@@ -98,14 +98,11 @@ function loadPhotograph() {
     layer.append(image);
     return image;
   });
-  function photographReady() {
-    if (photographLoaded || !images.every(image => image.complete && image.naturalWidth)) return;
+  Promise.all(images.map(image => image.decode())).then(() => {
     photographLoaded = true;
     dirty = true;
     schedule();
-  }
-  for (const image of images) image.addEventListener('load',photographReady);
-  photographReady();
+  }).catch(() => {});
 }
 
 function measure() {
@@ -260,11 +257,7 @@ function stop() {
 function tick(now) {
   pending = 0;
   if (!visible || document.hidden || !story.hasAttribute('data-playing')) return;
-  if (timestamp && scene.frameInterval && now-timestamp < scene.frameInterval-1) {
-    schedule();
-    return;
-  }
-  const elapsed = timestamp ? Math.min(90, now - timestamp) : 16.7;
+  const elapsed = timestamp ? Math.min(66, now - timestamp) : 16.7;
   timestamp = now;
   const error = target - current;
   current = Math.abs(error) < .001 ? target : current + error * (1 - Math.exp(-elapsed / 110));
@@ -326,9 +319,7 @@ function downstreamAnchor() {
     // A stale hash should not affect a visitor who has scrolled back to the story.
     if (Math.abs(linked.getBoundingClientRect().top) < innerHeight) return linked;
   }
-  if (story.getBoundingClientRect().bottom <= (page.hasAttribute('data-story-preparing') ? innerHeight*.48 : 0)) {
-    return story.nextElementSibling;
-  }
+  if (story.getBoundingClientRect().bottom <= 0) return story.nextElementSibling;
 }
 
 function preserveAnchor(anchor, priorTop) {
@@ -369,9 +360,9 @@ function loadWhenNear() {
     return;
   }
   if (reducedMotion.matches || load || loadFailed) return;
+  loadPhotograph();
   load = buildStoryScene(canvasHost).then(result => {
     if (pageDisposed) { result.release(); return; }
-    loadPhotograph();
     scene = result;
     enableMotion();
   }).catch(showFallback);

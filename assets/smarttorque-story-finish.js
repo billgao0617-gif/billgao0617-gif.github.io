@@ -104,26 +104,6 @@ const paintGrain = `
     return mix(mix(rows.x,farRows.x,f.y),mix(rows.y,farRows.y,f.y),f.z)-.5;
   }`;
 
-export function optionalWordmark() {
-  const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = 1;
-  const context = canvas.getContext('2d');
-  context.fillStyle = '#fff';
-  context.fillRect(0,0,1,1);
-  const texture = new THREE.CanvasTexture(canvas);
-  const image = new Image();
-  image.addEventListener('load',() => {
-    canvas.width = image.naturalWidth;
-    canvas.height = image.naturalHeight;
-    context.drawImage(image,0,0);
-    texture.needsUpdate = true;
-  },{once:true});
-  image.fetchPriority = 'low';
-  image.src = '/assets/editorial/smarttorque-wordmark.webp';
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
-
 export function makeBodyFinish(logo, transform, grip, preserveBody = false) {
   const material = new THREE.MeshPhysicalMaterial({
     color:0x254461,
