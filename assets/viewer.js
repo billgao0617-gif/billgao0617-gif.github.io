@@ -22,6 +22,22 @@ function mountViewer(root) {
   const host = $('viewer-canvas'), loading = $('viewer-loading');
   const inspectPanel = $('inspection-panel'), picker = $('head-picker'), headsButton = $('heads-button');
   const explorer = root.closest('[data-explorer]');
+  const inspectButtons = [...explorer.querySelectorAll('[data-prototype-inspect]')];
+  const inspections = new Map([['drive',/^力矩盘/],['voice',/^语音/],['retention',/环扣/],['lcd',/^LCD/]]);
+  function inspectComponent(key) {
+    if (!ready || !inspections.has(key)) return;
+    if (key === 'retention' && !showRetention) {
+      showRetention = true;
+      showHead(head);
+    }
+    const part = parts.find(item => inspections.get(key).test(item.partName));
+    if (!part) return;
+    if (!exploded) setExploded(true);
+    select(part);
+  }
+  for (const button of inspectButtons) {
+    button.addEventListener('click', () => inspectComponent(button.dataset.prototypeInspect));
+  }
   function showPicker(open, returnFocus = false) {
     picker.hidden = !open;
     headsButton.setAttribute('aria-expanded', String(open));
@@ -349,7 +365,7 @@ function mountViewer(root) {
     if(animation||controls.autoRotate||controlsChanged||moving)invalidate();
   }
   resize();invalidate();
-  (async()=>{manifest=await loadCadManifest();base=await Promise.all(manifest.main.map(loadPart));heads.scissors=base;heads.pliers=await Promise.all(manifest.pliers.map(loadPart));heads.driver=await Promise.all(manifest.driver.map(loadPart));retention=await Promise.all(manifest.retention.filter(part=>part.id==='retention-0').map(loadPart));alignHeads();fitRetention();ready=true;const requested=new URLSearchParams(location.search);const inspectKey=root.dataset.inspect??requested.get('inspect');if(inspectKey==='retention')showRetention=true;const initialHead=requested.get('head')??document.querySelector('[data-attachment][aria-selected=true]')?.dataset.attachment;showHead(['scissors','pliers','driver'].includes(initialHead)?initialHead:'driver');if(handoff && head==='driver')mechanism.setPhase(Math.PI);const inspectionMap=new Map([['voice',/^语音/],['retention',/环扣/],['lcd',/^LCD/]]);const inspection=inspectionMap.get(inspectKey);if(inspection){const part=parts.find(p=>inspection.test(p.partName));if(part){setExploded(true);select(part);}}loading.hidden=true;$('cad-poster').hidden=true;document.querySelectorAll('#heads-button,[data-head],#retention-button,#explode-button,#reset-button,#motion-play,#motion-reset,#drive-slider').forEach(b=>b.disabled=false);window.applySiteLanguage?.();renderInfo();console.info('SmartTorque authentic CAD loaded',{core:base.length,scissors:heads.scissors.length,pliers:heads.pliers.length,driver:heads.driver.length,retention:retention.length});})().catch(error=>{console.error('SmartTorque CAD load failed',error);loading.textContent=t('The CAD model could not load. Refresh to try again.','CAD 模型载入失败，请刷新后重试。');});
+  (async()=>{manifest=await loadCadManifest();base=await Promise.all(manifest.main.map(loadPart));heads.scissors=base;heads.pliers=await Promise.all(manifest.pliers.map(loadPart));heads.driver=await Promise.all(manifest.driver.map(loadPart));retention=await Promise.all(manifest.retention.filter(part=>part.id==='retention-0').map(loadPart));alignHeads();fitRetention();ready=true;const requested=new URLSearchParams(location.search);const inspectKey=root.dataset.inspect??requested.get('inspect');if(inspectKey==='retention')showRetention=true;const initialHead=requested.get('head')??document.querySelector('[data-attachment][aria-selected=true]')?.dataset.attachment;showHead(['scissors','pliers','driver'].includes(initialHead)?initialHead:'driver');if(handoff && head==='driver')mechanism.setPhase(Math.PI);inspectComponent(inspectKey);inspectButtons.forEach(button=>{button.disabled=false;});loading.hidden=true;$('cad-poster').hidden=true;document.querySelectorAll('#heads-button,[data-head],#retention-button,#explode-button,#reset-button,#motion-play,#motion-reset,#drive-slider').forEach(b=>b.disabled=false);window.applySiteLanguage?.();renderInfo();console.info('SmartTorque authentic CAD loaded',{core:base.length,scissors:heads.scissors.length,pliers:heads.pliers.length,driver:heads.driver.length,retention:retention.length});})().catch(error=>{console.error('SmartTorque CAD load failed',error);loading.textContent=t('The CAD model could not load. Refresh to try again.','CAD 模型载入失败，请刷新后重试。');});
 }
 
 

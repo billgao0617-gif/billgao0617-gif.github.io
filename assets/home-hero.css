@@ -55,6 +55,15 @@
   letter-spacing: -.04em;
 }
 .home-hero-slogan span { display: block; }
+.home-hero-definition {
+  max-width: 29ch;
+  margin: clamp(.7rem,1.7vw,1.35rem) 0 0;
+  color: #d4e3ed;
+  font-size: clamp(.82rem,1.2vw,1.04rem);
+  line-height: 1.48;
+  text-wrap: pretty;
+}
+.home-hero-definition:lang(zh-CN) { max-width: none; }
 .home-hero-copy .home-hero-link {
   display: inline-flex;
   align-items: center;

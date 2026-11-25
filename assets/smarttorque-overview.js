@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { buildStoryScene } from './smarttorque-story-scene.js?v=5918446cbf8c';
+import { buildStoryScene } from './smarttorque-story-scene.js?v=7335e0895730';
 
 const guide = document.querySelector('#overview');
 const model = guide.querySelector('.guide-model');

@@ -55,10 +55,10 @@ export function positionStoryParts(frame, progress) {
 
   // These cycles run only during locked dwells at their native mating poses.
   frame.open.pliers = .25 * (
-    jawCycle(progress,.229,.247,.253,.271) + jawCycle(progress,.279,.295,.302,.323) +
+    jawCycle(progress,.229,.246,.257,.271) + jawCycle(progress,.279,.293,.308,.324) +
     jawCycle(progress,voiceActStart,.721,.732,voiceActEnd)
   );
-  frame.open.scissors = .23 * (jawCycle(progress,.388,.406,.412,.433) + jawCycle(progress,.441,.456,.464,.483));
+  frame.open.scissors = .23 * (jawCycle(progress,.388,.404,.417,.433) + jawCycle(progress,.441,.454,.469,.483));
   frame.unlock = Math.max(
     jawCycle(progress,.156,.170,.215,.227),
     jawCycle(progress,.326,.334,.374,.386),
@@ -74,9 +74,9 @@ export function positionStoryParts(frame, progress) {
     jawCycle(transmission,.607,.677,.715,.819)
   );
   frame.fastener = jawCycle(fasten,.26,.44,.93,.998);
-  frame.seating = ease(fasten,.535,.815);
+  frame.seating = ease(fasten,.535,.786);
   frame.fastenerSpin = 4 * Math.PI * frame.seating;
-  const engagement = ease(fasten,.44,.535) * (1-ease(fasten,.87,.95));
+  const engagement = ease(fasten,.44,.535) * (1-ease(fasten,.885,.956));
   frame.advance = engagement * (.009 + .011 * frame.seating);
   frame.driverSpin = 1.65 * Math.PI * ease(progress,.113,.165) + frame.fastenerSpin;
   frame.driveGear = frame.driverSpin - 4.1 * (frame.open.pliers + frame.open.scissors);

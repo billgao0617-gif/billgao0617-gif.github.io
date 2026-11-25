@@ -307,18 +307,23 @@ function faceGraphic() {
   return texture;
 }
 
-function makeIntegratedHousing(tool, logo, steel, glass) {
+function makeIntegratedHousing(tool, logo, glass) {
   const shell = new THREE.Group();
   const display = new THREE.Group();
   const shellFinish = makeBodyFinish(logo,new THREE.Matrix4(),false);
-  addCommercialHousing(shell,shellFinish,material(0x263e56,.45,.29));
+  const shoulderFinish = material(0x263e56,.45,.29);
+  const rimFinish = brushedMetal(0xb9c6ce,.27,'x');
+  const panelFinish = glass.clone();
+  const shellFinishes = [shellFinish,shoulderFinish];
+  const displayFinishes = [rimFinish,panelFinish];
+  addCommercialHousing(shell,shellFinish,shoulderFinish);
   const {x,y,width,depth,radius} = displayFit;
   mesh(display,deckShoulder([
     [y-.0010,width,depth,radius],
     [y+.0001,width-.0012,depth-.0012,radius-.00045],
     [y+.0001,width-.0027,depth-.0027,radius-.00125]
-  ]),steel,x);
-  const panel = mesh(display,new THREE.ShapeGeometry(roundedDeck(width-.00275,depth-.00275,radius-.00128)),glass,x,y+.00015);
+  ]),rimFinish,x);
+  const panel = mesh(display,new THREE.ShapeGeometry(roundedDeck(width-.00275,depth-.00275,radius-.00128)),panelFinish,x,y+.00015);
   panel.rotation.x = -Math.PI/2;
   const outline = roundedDeck(width-.00245,depth-.00245,radius-.00113).getPoints(12);
   outline.pop();
@@ -333,8 +338,18 @@ function makeIntegratedHousing(tool, logo, steel, glass) {
   return function pose(mix,scan) {
     const seat = ease(mix,.21,.85);
     const glassSeat = ease(mix,.52,1);
-    shell.visible = mix > .16;
-    display.visible = mix > .46;
+    const shellOpacity = ease(mix,.115,.265);
+    const displayOpacity = ease(mix,.405,.56);
+    shell.visible = shellOpacity > .003;
+    display.visible = displayOpacity > .003;
+    for (const finish of shellFinishes) {
+      finish.transparent = shellOpacity < 1;
+      finish.opacity = shellOpacity;
+    }
+    for (const finish of displayFinishes) {
+      finish.transparent = displayOpacity < 1;
+      finish.opacity = displayOpacity;
+    }
     shell.position.set(.039*(1-seat),.072*(1-seat),.050*(1-seat));
     shell.rotation.set(.13*(1-seat),-.23*(1-seat),-.092*(1-seat));
     display.position.set(-.030*(1-glassSeat),.099*(1-glassSeat),-.042*(1-glassSeat));
@@ -402,7 +417,6 @@ export async function buildJourneyScene(host) {
     const housing = makeBodyFinish(logo, registration(bodyRow), true, true);
     const housingTrim = new THREE.Plane(new THREE.Vector3(0,-1,0),1);
     housing.clippingPlanes = [housingTrim];
-    const integratedGrip = makeBodyFinish(logo, registration(bodyRow), true);
     const finishes = {
       1: gold, 2: dark, 3: steel, 4: caseFinish, 5: steel, 6: housing,
       7: caseFinish, 8: gold, 9: gold, 10: dark, 12: glass, 13: pcb, 18: pcb, 22: caseFinish
@@ -450,6 +464,11 @@ export async function buildJourneyScene(host) {
       Promise.all(manifest.pliers.filter(row => row.visible && !isBodyPart(row) && number(row) !== 22)
         .map(row => addPart(row,pliers,number(row) === 24 ? caseFinish : steel)))
     ]);
+    const solidFinishes = new Set(solids.map(part => part.material));
+    const drawingBounds = new THREE.Box3();
+    for (const part of parts) drawingBounds.union(part.bounds);
+    const drawingCenter = drawingBounds.getCenter(new THREE.Vector3());
+    const drawingWidth = drawingBounds.max.x-drawingBounds.min.x;
     const order = new Map();
     for (const part of parts) {
       if (!entry[part.id]) continue;
@@ -474,9 +493,7 @@ export async function buildJourneyScene(host) {
     const socketEnd = markerParts.get(27).bounds.max.x;
     const pliersEnd = Math.max(...jaws.map(part => part.bounds.max.x));
     const gripBox = markerParts.get(6).bounds;
-    const bodyMeshes = [];
-    markerParts.get(6).shape.traverse(child => { if (child.isMesh) bodyMeshes.push(child); });
-    const poseIntegrated = makeIntegratedHousing(tool,logo,steel,glass);
+    const poseIntegrated = makeIntegratedHousing(tool,logo,glass);
     const covers = new Set([7,10,11,12]);
     const electronics = new Set([2,4,9,13,18]);
     const bench = makeBench(scene,steel,dark,socketEnd,gripBox);
@@ -485,7 +502,7 @@ export async function buildJourneyScene(host) {
     let width = 1;
     let height = 1;
     let previousLight;
-    let showOutline, showSolids, showIntegrated;
+    let showOutline, showSolids, lastSolid;
     host.append(renderer.domElement);
     return {
       resize(w,h) {
@@ -504,14 +521,21 @@ export async function buildJourneyScene(host) {
         }
         const task = frame.task;
         const wire = frame.wire ?? 0;
-        const bareOutline = frame.bareOutline ?? false;
+        const solid = frame.solid ?? 1;
         if (showOutline !== (wire > .004)) {
           showOutline = wire > .004;
           for (const line of lines) line.visible = showOutline;
         }
-        if (showSolids !== !bareOutline) {
-          showSolids = !bareOutline;
+        if (showSolids !== (solid > .004)) {
+          showSolids = solid > .004;
           for (const part of solids) part.visible = showSolids;
+        }
+        if (lastSolid !== solid) {
+          lastSolid = solid;
+          for (const finish of solidFinishes) {
+            finish.opacity = solid;
+            finish.transparent = solid < 1;
+          }
         }
         trace.color.setHex(frame.light ? 0x24566a : 0xadf1fc);
         trace.opacity = wire*.83;
@@ -529,11 +553,7 @@ export async function buildJourneyScene(host) {
         const lift = (frame.toolLift ?? 0)*chamber.liftClearance;
         tool.position.y = lift;
         poseIntegrated(iteration,frame.seam ?? 0);
-        housingTrim.constant = lerp(.160,-.025,ease(iteration,.43,.77))+lift;
-        if (showIntegrated !== (iteration > .84)) {
-          showIntegrated = iteration > .84;
-          for (const surface of bodyMeshes) surface.material = showIntegrated ? integratedGrip : housing;
-        }
+        housingTrim.constant = lerp(.160,-.025,ease(iteration,.43,.84))+lift;
         for (const part of parts) {
           if (!part.entrance) continue;
           const seat = ease(frame.assembly,part.start,part.end);
@@ -578,14 +598,18 @@ export async function buildJourneyScene(host) {
         const elevation = lerp(lerp(viewElevation,.36,compare),.41,release);
         const closing = 1-(frame.explode ?? 1)*(1-ease(frame.assembly,.72,1));
         const view = lerp(lerp(.65,.49,closing),.61,intoBench);
-        const clearance = Math.sin(Math.PI*iteration);
+        const clearance = Math.sin(Math.PI*iteration)*(1-compare);
         const exitFraming = ease(frame.hatch ?? 0,.08,.88)*frame.chamber;
         const spread = lerp(.458,.315,closing) + .098 * (intoBench - intoFit) + .087 * intoFit;
         const fit = spread / (lens * camera.aspect * (mobile ? .81 : .77));
         camera.fov = lerp(fov,7,drawing);
         const scale = lens/(2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2)));
-        const distance = Math.max(view,fit) *
-          (1-.051*frame.inspection-.085*release+.33*frame.chamber+.14*drawing+.23*clearance+.75*exitFraming)*scale;
+        const sceneDistance = Math.max(view,fit) *
+          (1-.051*frame.inspection-.085*release+.33*frame.chamber+.23*clearance+.75*exitFraming);
+        // The source sketch is contained in a 1600×900 plate. Its CAD silhouette spans 806 pixels.
+        const plateScale = Math.min(width/1600,height/900);
+        const drawingDistance = height*drawingWidth/(lens*806*plateScale);
+        const distance = lerp(sceneDistance,drawingDistance,drawing)*scale;
         const objectCenterX = lerp(.077,.030,closing);
         const objectCenterY = lerp(.043,-.018,closing);
         target.set(lerp(lerp(objectCenterX,.085,intoBench),.087,intoFit),lerp(lerp(objectCenterY,-.045,intoBench),-.015,intoFit),0);
@@ -593,11 +617,13 @@ export async function buildJourneyScene(host) {
         const bodyCenter = lerp(target.y,-.031,frame.chamber)-.015*drawing+.029*clearance+lift;
         const chamberCenter = .076+.16*lift-.14*(1-frame.chamber);
         target.y = lerp(bodyCenter,chamberCenter,exitFraming);
+        target.x = lerp(target.x,drawingCenter.x,drawing);
+        target.y = lerp(target.y,drawingCenter.y,drawing);
         camera.position.set(distance*Math.sin(yaw)*Math.cos(elevation),
           distance*Math.sin(elevation),distance*Math.cos(yaw)*Math.cos(elevation)).add(target);
         camera.lookAt(target);
         camera.rotateZ(lerp(-.05,.04,intoFit)*(1-release)*(1-drawing)+.09*release);
-        camera.setViewOffset(width,height,0,0,width,height);
+        camera.setViewOffset(width,height,13*plateScale*drawing,-6.5*plateScale*drawing,width,height);
         camera.updateMatrixWorld();
         if (frame.dock > .001) {
           projection.copy(interfaceRig.joint).project(camera);

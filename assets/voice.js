@@ -4,10 +4,10 @@
   if (!session) return;
 
   const groups = [
-    ['Attachment','接头',[[5,'开锁','Unlock']]],
+    ['Try these first','先试这三条',[[5,'开锁','Unlock'],[8,'紧固','Tighten'],[11,'转动一圈','One turn']]],
     ['Operating mode','工作模式',[[6,'自动模式','Automatic mode'],[7,'手动模式','Manual mode']]],
-    ['Direction','作业方向',[[8,'紧固','Tighten'],[9,'松开','Loosen']]],
-    ['Rotation','转动圈数',[[10,'转动半圈','Half a turn'],[11,'转动一圈','One turn'],[12,'转动两圈','Two turns'],[13,'转动三圈','Three turns']]],
+    ['Direction','作业方向',[[9,'松开','Loosen']]],
+    ['Rotation','转动圈数',[[10,'转动半圈','Half a turn'],[12,'转动两圈','Two turns'],[13,'转动三圈','Three turns']]],
     ['Speed','速度档位',[[14,'速度一档','Speed level 1'],[15,'速度二档','Speed level 2'],[16,'速度三档','Speed level 3']]],
     ['Torque','扭矩档位',[[17,'扭矩一档','Torque level 1'],[18,'扭矩二档','Torque level 2'],[19,'扭矩三档','Torque level 3']]]
   ];
@@ -31,7 +31,7 @@
 
   for (const [en,zh,commands] of groups) {
     const card = document.createElement('section');
-    card.className = 'voice-command-set';
+    card.className = catalogue.childElementCount === 0 ? 'voice-command-set voice-command-featured' : 'voice-command-set';
     const heading = document.createElement('h4');
     heading.id = `voice-group-${commands[0][0]}`;
     card.setAttribute('aria-labelledby',heading.id);

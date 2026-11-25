@@ -20,6 +20,9 @@ const shotLabel = art.querySelector('.journey-shot-label');
 const tether = end.querySelector('.journey-tether-path');
 const toolbar = viewport.querySelector('.journey-stage-toolbar');
 const sceneTitle = toolbar.querySelector('.journey-stage-title');
+const mobileChapter = toolbar.querySelector('.journey-mobile-chapter');
+const comparison = viewport.querySelector('.journey-comparison');
+const compareSlider = comparison.querySelector('input');
 const loadingStatus = document.createElement('span');
 loadingStatus.className = 'journey-stage-loading';
 loadingStatus.setAttribute('role','status');
@@ -37,6 +40,9 @@ host.before(fallback);
 
 // Each unit represents a second at the design scroll pace. The user controls progress.
 const chamberHandoffDistance = .68;
+const compareStart = 16.91;
+const compareEnd = 19.65;
+const comparisonLabels = [['Prototype','Housing alignment','Integrated concept'],['原型机','外壳对位','集成概念']];
 const stops = [0, 2, 6, 15+chamberHandoffDistance, 21+chamberHandoffDistance, 23+chamberHandoffDistance];
 const storyLength = stops.at(-1);
 const landings = [0, 2.12, 6.15, 15.15+chamberHandoffDistance, 21.10+chamberHandoffDistance];
@@ -68,6 +74,11 @@ const exposureSteps = [
   ['Low temperature · planned','低温 · 计划验证'],
   ['High temperature · planned','高温 · 计划验证'],
   ['Check tool response','检查工具响应']
+];
+const exposureChecks = [
+  ['Confirm enclosure and electronics protection.','检查外壳与电子器件的防护。'],
+  ['Check display response and restart after cooling.','检查低温后的屏幕响应与重启。'],
+  ['Check operation and fit after heating.','检查升温后的工具运行与装配配合。']
 ];
 const debugCopy = [
   ['Voice input → wake','语音输入 → 唤醒'],
@@ -132,7 +143,13 @@ function setActive(index) {
     steps[i].hidden = working && i !== index;
   }
   railDescription.textContent = notes[index][language];
+  updateMobileChapter(index);
   shotLabel.textContent = shotLabels[index][language];
+}
+
+function updateMobileChapter(index) {
+  const label = nodes[index].querySelector('.journey-node-label');
+  mobileChapter.textContent = language ? label.dataset.zh : label.dataset.en;
 }
 
 function localize() {
@@ -144,6 +161,7 @@ function localize() {
   if (active >= 0) {
     railDescription.textContent = notes[active][language];
     shotLabel.textContent = shotLabels[active][language];
+    updateMobileChapter(active);
   }
   refresh();
 }
@@ -228,7 +246,10 @@ function setMode() {
   if (linked >= 0) go(linked);
   else if (hadMotion !== working && index > 0) go(index);
   if (working && inView) loadScene();
-  if (!working) loadingStatus.hidden = true;
+  if (!working) {
+    loadingStatus.hidden = true;
+    comparison.hidden = true;
+  }
 }
 
 function slideImage(plate, point, zoom, percentX) {
@@ -297,7 +318,9 @@ function render(scrollDistance) {
   const fraction = unit((scrollDistance-stops[index]) / (stops[index+1]-stops[index]));
   rail.style.setProperty('--journey-rail-progress', `${25*Math.min(4,index+fraction)}%`);
   art.style.setProperty('--shot-progress', `${fraction*100}%`);
-  const drawingOpacity = scene ? 1-ease(1.82,2.34,value) : Number(index === 0);
+  const drawingOpacity = scene ? 1-ease(1.84,2.52,value) : Number(index === 0);
+  const liveOpacity = scene ? ease(1.75,2.42,value) : 0;
+  art.style.setProperty('--drawing-grid', scene ? 1-ease(1.78,3.18,value) : drawingOpacity);
   const missionFade = finalPlateReady ? ease(21.53,22.10,value) : 0;
   const showEva = finalPlateReady && value >= 21.61;
   const revealingEva = showEva && Boolean(scene) && value < 22.02;
@@ -314,10 +337,10 @@ function render(scrollDistance) {
   const integration = value >= 15 && value < 21;
   frame.progress = value;
   frame.light = document.documentElement.dataset.theme === 'light';
-  frame.drawingView = 1-ease(1.95,2.93,value);
-  frame.wire = 1-ease(2.28,2.97,value);
-  frame.bareOutline = value < 2.33;
-  frame.explode = ease(2.89,3.53,value);
+  frame.drawingView = 1-ease(2.27,3.27,value);
+  frame.wire = 1-ease(2.41,3.27,value);
+  frame.solid = ease(2.19,2.96,value);
+  frame.explode = ease(3.14,3.68,value);
   frame.assembly = ease(3.47,5.78,value);
   frame.bench = ease(6.98,7.11,value);
   frame.benchExit = ease(7.32,7.48,value);
@@ -339,9 +362,15 @@ function render(scrollDistance) {
   frame.driveCheck = ease(14.32,14.72,value);
   frame.releaseCheck = ease(14.64,14.82,value)*(1-ease(14.88,15.06,value));
   frame.inspectMark = value >= 7.10 && value < 7.27;
-  frame.iteration = ease(16.96,19.24,value);
+  frame.iteration = ease(compareStart,19.24,value);
   frame.seam = ease(19.10,19.64,value);
-  frame.compare = ease(16.45,16.95,value)*(1-ease(19.64,20.03,value));
+  frame.compare = ease(16.42,compareStart,value)*(1-ease(compareEnd,20.06,value));
+  const comparePosition = unit((value-compareStart)/(compareEnd-compareStart));
+  comparison.hidden = !scene || index !== 3;
+  const compareValue = String(Math.round(comparePosition*100));
+  if (compareSlider.value !== compareValue) compareSlider.value = compareValue;
+  const compareLabel = comparisonLabels[language][comparePosition === 0 ? 0 : comparePosition === 1 ? 2 : 1];
+  if (compareSlider.getAttribute('aria-valuetext') !== compareLabel) compareSlider.setAttribute('aria-valuetext',compareLabel);
   frame.interface = ease(20.67,21.48,value);
   frame.dock = ease(21.15,22.10,value);
   frame.task = ease(19.70,20.05,value)*(1-ease(20.44,20.84,value));
@@ -380,12 +409,13 @@ function render(scrollDistance) {
   stageHeading(index, focus);
   const detail = index === 0 ? ['SIDE VIEW / ASSEMBLY OUTLINE','侧视图 / 装配轮廓'] :
     debugging ? debugCopy[value < 6.34 ? 0 : value < 6.66 ? 1 : 2] :
+    usingSymbol ? exposureChecks[exposure-1] :
     checking && !exit ? ['DISPLAY / DRIVE / QUICK RELEASE','显示 / 传动 / 快拆'] : null;
   technicalNote.hidden = !detail;
   if (detail && technicalNote.textContent !== detail[language]) technicalNote.textContent = detail[language];
-  art.toggleAttribute('data-drawing',value < 2.26);
+  technicalNote.toggleAttribute('data-exposure-detail',usingSymbol);
   frame.mark = part?.id ?? (debugging || checking && value < 14.33 ? 12 : checking ? (value < 14.63 ? 27 : 5) : 0);
-  const opacity = (1-drawingOpacity)*Number(!showEva || revealingEva);
+  const opacity = liveOpacity*Number(!showEva || revealingEva);
   host.style.opacity = opacity;
   const liveMarker = scene && opacity > .002 && scene.render(frame,mark2D);
   staticImage(index,exposure);
@@ -417,7 +447,7 @@ function draw(time) {
   loadingStatus.hidden = !waiting;
   const delta = goal - progress;
   const offset = Math.abs(delta);
-  progress = offset < .012 || offset > 2.5 ? goal : progress + delta*(1-Math.exp(-dt/68));
+  progress = offset < .012 || offset > 5 ? goal : progress + delta*(1-Math.exp(-dt/68));
   if (delta || dirty) {
     render(progress);
     dirty = false;
@@ -433,7 +463,7 @@ function schedule() {
 function loadScene() {
   if (loaded || failed || !working) return;
   loaded = true;
-  import('./journey-scene.js?v=9df3ad93200b').then(({buildJourneyScene}) => buildJourneyScene(host)).then(result => {
+  import('./journey-scene.js?v=a5bb9a2cbaf7').then(({buildJourneyScene}) => buildJourneyScene(host)).then(result => {
     if (disposed) { result.release(); return; }
     scene = result;
     if (width && height) scene.resize(width,height);
@@ -444,6 +474,11 @@ function loadScene() {
     refresh();
   }).catch(() => { failed = true; refresh(); });
 }
+
+compareSlider.addEventListener('input', () => {
+  const comparisonCue = compareStart+(compareEnd-compareStart)*compareSlider.valueAsNumber/100;
+  positionAt(comparisonCue+chamberHandoffDistance);
+});
 
 for (const link of nodes) {
   link.addEventListener('click', event => {

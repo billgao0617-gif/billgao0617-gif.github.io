@@ -130,15 +130,32 @@ html[data-story-preparing] .smart-story-loading,
   font-weight: 650;
   color: #bdcbd8;
 }
-.smart-story-intro a {
-  display: inline-block;
-  margin-top: .5rem;
-  padding: .45rem 0;
-  color: #f3f7fa;
-  text-underline-offset: .35em;
-  font-size: .92rem;
+.smart-story-finish {
+  position: absolute;
+  z-index: 3;
+  inset: auto 0 max(24px, calc(env(safe-area-inset-bottom) + 16px), 6svh);
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  animation: smart-story-finish-in .22s ease-out both;
 }
-.smart-story-intro a:focus-visible { outline: 2px solid #a4dce9; outline-offset: 6px; }
+.smart-story-finish a {
+  display: inline-flex;
+  align-items: center;
+  gap: .75em;
+  min-height: 44px;
+  padding: .48rem .95rem;
+  border: 1px solid var(--story-line);
+  border-radius: 999px;
+  background: color-mix(in srgb,var(--story-background) 94%,transparent);
+  color: var(--story-ink);
+  font-size: .9rem;
+  pointer-events: auto;
+}
+.smart-story-finish a:hover { border-color: var(--story-accent); }
+.smart-story-finish a span + span { color: var(--story-accent); }
+@keyframes smart-story-finish-in { from { opacity: 0; transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { .smart-story-finish { animation: none; } }
 .product-direct .stage-intro h2 { margin: 0; font-size: clamp(2.15rem, 4.4vw, 5rem); }
 .smart-story-caption {
   text-align: center;
@@ -197,6 +214,24 @@ html[data-story-preparing] .smart-story-loading,
 .smart-story-fallback figcaption { padding: .75rem var(--gutter) 1rem; color: #d0dbe3; }
 html[data-theme="light"] .smart-story-fallback { background: #202a39; }
 
+.prototype-inspect {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0 0 .6rem;
+}
+.prototype-inspect button {
+  min-height: 42px;
+  padding: .35rem .85rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: .82rem;
+  cursor: pointer;
+}
+.prototype-inspect button:not(:disabled):hover { border-color: var(--cyan); }
+.prototype-inspect button:disabled { opacity: .62; cursor: wait; }
 .prototype-context {
   margin: .65rem 0 1.05rem;
   max-width: 72ch;
@@ -244,7 +279,7 @@ html[data-theme="light"] .smart-story-fallback { background: #202a39; }
   white-space: nowrap;
 }
 @media (max-width: 640px) {
-  .smart-story-caption { bottom: max(11svh, calc(env(safe-area-inset-bottom) + 15px)); }
+  .smart-story-caption { bottom: max(14svh, calc(env(safe-area-inset-bottom) + 20px)); }
   .smart-story-caption h2 { font-size: clamp(1.35rem, 6vw, 2.05rem); }
 }
 @media (max-aspect-ratio: 11/10) {
@@ -252,7 +287,6 @@ html[data-theme="light"] .smart-story-fallback { background: #202a39; }
   .smart-story-intro { left: max(16px, 5vw); top: clamp(17px, 2.8%, 64px); }
   .smart-story-intro .company-slogan { font-size: clamp(1.62rem, 6.8vw, 4.55rem); }
   .smart-story-intro p.smart-story-product-name { margin-bottom: .65rem; }
-  .smart-story-intro a { font-size: .78rem; }
 }
 @media (max-height: 500px) and (orientation: landscape) {
   .smart-story-caption { bottom: 10px; }

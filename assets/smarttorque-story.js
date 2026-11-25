@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
-import { buildStoryScene } from './smarttorque-story-scene.js?v=5918446cbf8c';
-import { ease, voiceStart, tetherStart, positionStoryParts, attachmentAt, evaCamera, storyProgress } from './smarttorque-story-timeline.js?v=dd36b206b83e';
+import { buildStoryScene } from './smarttorque-story-scene.js?v=7335e0895730';
+import { ease, voiceStart, tetherStart, positionStoryParts, attachmentAt, evaCamera, storyProgress } from './smarttorque-story-timeline.js?v=c19916e3a44c';
 
 const story = document.querySelector('.smart-story');
 const stage = story.querySelector('.smart-story-stage');
@@ -9,7 +9,7 @@ const navigationType = performance.getEntriesByType('navigation')[0]?.type;
 const isFirstNavigation = navigationType !== 'back_forward' && navigationType !== 'reload';
 const begin = story.querySelector('.smart-story-begin');
 const intro = story.querySelector('.smart-story-intro');
-const skip = intro.querySelector('a');
+const finish = story.querySelector('.smart-story-finish');
 const hero = story.querySelector('.smart-story-hero');
 const canvasHost = story.querySelector('.smart-story-model');
 const eva = story.querySelector('.smart-story-eva');
@@ -37,6 +37,7 @@ const copy = {
   tether: ['Stay connected in zero-G', 'Seat the ring, clip in and draw the tether.', '舱外系留', '弧形环扣接上锁扣，再拉出系留绳']
 };
 const interpolate = (x, y, amount) => x + (y - x) * amount;
+const finalActionStart = .969;
 const fovFactor = 2 * Math.tan(31 * Math.PI / 360);
 const frame = {
   width: 1, height: 1, shiftX: 0, shiftY: 0, progress: 0, distance: 1,
@@ -50,7 +51,7 @@ const frame = {
 let scene, load, loadFailed = false, visible = false, pageDisposed = false;
 let current = 0, target = 0, pending = 0, timestamp = 0, dirty = true;
 let sectionTop = 0, travel = 1, handWidth = 1, handX = 0, handY = 0;
-let act, attachment = -1, introHidden = false, wakePhase = -1;
+let act, attachment = -1, wakePhase = -1;
 
 function localize() {
   const chinese = document.documentElement.lang.startsWith('zh');
@@ -137,12 +138,12 @@ function positionTimeline(scrollProgress) {
   const progress = storyProgress(frame,scrollProgress);
   frame.progress = progress;
   const emergence = ease(progress, .015, .146);
-  const toSide = ease(progress, .115, .199);
-  const toLCD = ease(progress, .527, .595);
-  const toJaws = ease(progress, .674, .708);
+  const toSide = ease(progress, .112, .170);
+  const toLCD = ease(progress, .530, .584);
+  const toJaws = ease(progress, .678, .699);
   const toRing = ease(progress, .779, .857);
-  const toLatch = ease(progress, .846, .915);
-  const settle = ease(progress, .927, .946);
+  const toLatch = ease(progress, .842, .866);
+  const settle = ease(progress, .933, .950);
   const width = frame.width;
   const height = frame.height;
   const mobile = width < 650;
@@ -167,19 +168,19 @@ function positionTimeline(scrollProgress) {
     interpolate(0, .037, toRing)
   );
   frame.shiftX = interpolate(handX, 0, emergence);
-  frame.shiftY = interpolate(handY, -height * (shortViewport ? .10 : mobile ? .035 : .065), emergence);
+  frame.shiftY = interpolate(handY, -height * (shortViewport ? .10 : mobile ? .015 : .065), emergence);
 
   positionStoryParts(frame, progress);
   const transmission = frame.transmissionTime;
-  const inspect = ease(transmission,0,.19) * (1-ease(transmission,.85,1));
+  const inspect = ease(transmission,0,.158) * (1-ease(transmission,.855,1));
   const focusDistance = Math.max(.384,.195*height/(fovFactor*width*(mobile ? .88 : .58)));
   frame.aim.x = interpolate(frame.aim.x,.056,inspect);
   frame.aim.y = interpolate(frame.aim.y,.007,inspect);
   frame.distance = interpolate(frame.distance,focusDistance,inspect);
-  frame.yaw = interpolate(frame.yaw,.31+.11*ease(transmission,.18,.81),inspect);
+  frame.yaw = interpolate(frame.yaw,.36,inspect);
   frame.elevation = interpolate(frame.elevation,.31,inspect);
   frame.shiftY = interpolate(frame.shiftY,-height*(shortViewport ? .125 : .065),inspect);
-  const fastening = ease(frame.fasteningTime,0,.27) * (1-ease(frame.fasteningTime,.88,1));
+  const fastening = ease(frame.fasteningTime,0,.34) * (1-ease(frame.fasteningTime,.935,1));
   const sideDistance=Math.max(.358,.170*height/(fovFactor*width*(mobile ? .89 : .65)));
   frame.aim.x = interpolate(frame.aim.x,.127,fastening);
   frame.aim.y = interpolate(frame.aim.y,0,fastening);
@@ -207,13 +208,9 @@ function updateOverlays(progress) {
   stage.style.setProperty('--eva-focus', frame.highlight * .19);
   canvasHost.style.opacity = cut;
   intro.style.opacity = 1 - ease(progress,.008,.055);
-  const hideIntro = progress > .055;
-  if (hideIntro !== introHidden) {
-    introHidden = hideIntro;
-    intro.style.visibility = hideIntro ? 'hidden' : 'visible';
-    // Retain the skip link while it is being used from the keyboard.
-    if (document.activeElement === skip) intro.style.visibility = 'visible';
-  }
+  intro.style.visibility = progress > .055 ? 'hidden' : 'visible';
+  // Reserve the last few scroll frames for the CTA, after the docking shot has settled.
+  finish.hidden = current < finalActionStart && !finish.contains(document.activeElement);
   const transmission = frame.transmissionTime;
   let nextAct = 'tether';
   if (transmission >= 0 && transmission < 1) nextAct = 'transmission';
@@ -305,7 +302,7 @@ function disableMotion() {
   canvasHost.style.opacity = 0;
   eva.style.opacity = 0;
   evaGlove.style.opacity = 0;
-  introHidden = false;
+  finish.hidden = true;
 }
 
 function showFallback(error) {
@@ -392,7 +389,9 @@ story.querySelector('[data-story-retry]').addEventListener('click', event => {
   story.scrollIntoView({block:'start',behavior:'instant'});
   location.reload();
 });
-skip.addEventListener('blur', () => { if (introHidden) intro.style.visibility = 'hidden'; });
+finish.addEventListener('focusout', () => {
+  if (current < finalActionStart) finish.hidden = true;
+});
 localize();
 const nearby = new IntersectionObserver(entries => {
   if (entries[0].isIntersecting) loadWhenNear();
