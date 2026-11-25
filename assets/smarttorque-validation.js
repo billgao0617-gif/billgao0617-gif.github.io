@@ -7,6 +7,7 @@
   const played = new WeakSet();
   const decoding = new WeakSet();
   const counting = new Map();
+  const benefiting = new Map();
   const duration = 820;
   let request = 0;
 
@@ -22,6 +23,7 @@
     for (const [card, animation] of counting) {
       const progress = Math.max(0,Math.min(1,(now-animation.start)/duration));
       if (!visible.has(card) || progress === 1) {
+        if (progress === 1) played.add(card);
         finish(card,animation);
         continue;
       }
@@ -42,9 +44,9 @@
   }
 
   function enter(item, delay) {
-    if (played.has(item) || document.hidden || reduced.matches) return;
+    if (document.hidden || reduced.matches) return;
     if (item.classList.contains('why-stage')) {
-      if (decoding.has(item)) return;
+      if (item.dataset.benefitPhase || decoding.has(item)) return;
       decoding.add(item);
       const pictures = [...item.querySelectorAll('img')].filter(img => img.getClientRects().length);
       Promise.allSettled(pictures.map(img => {
@@ -53,13 +55,16 @@
       })).then(() => {
         decoding.delete(item);
         if (visible.has(item) && !document.hidden && !reduced.matches) {
-          played.add(item);
-          item.setAttribute('data-benefit-motion','');
+          item.dataset.benefitPhase = 'playing';
+          benefiting.set(item,setTimeout(() => {
+            benefiting.delete(item);
+            item.dataset.benefitPhase = 'complete';
+          },1400));
         }
       });
       return;
     }
-    played.add(item);
+    if (played.has(item) || counting.has(item)) return;
     const values = [...item.querySelectorAll('[data-metric-number]')].map(label => {
       const text = label.textContent;
       return {label, text, target:Number(text), precision:text.split('.')[1]?.length ?? 0};
@@ -70,11 +75,19 @@
     if (!request) request = requestAnimationFrame(draw);
   }
 
+  function stopBenefit(item) {
+    const timer = benefiting.get(item);
+    if (timer === undefined) return;
+    clearTimeout(timer);
+    benefiting.delete(item);
+    delete item.dataset.benefitPhase;
+  }
+
   function finishVisibleMotion() {
     cancelAnimationFrame(request);
     request = 0;
     for (const [card, animation] of counting) finish(card,animation);
-    for (const item of visible) item.removeAttribute('data-benefit-motion');
+    for (const item of benefiting.keys()) stopBenefit(item);
   }
 
   const observer = new IntersectionObserver(entries => {
@@ -88,7 +101,7 @@
         visible.delete(item);
         const animation = counting.get(item);
         if (animation) finish(item,animation);
-        item.removeAttribute('data-benefit-motion');
+        stopBenefit(item);
       }
     }
   }, {threshold:[0,.25]});

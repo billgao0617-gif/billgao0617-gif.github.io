@@ -253,18 +253,18 @@
   height: 1px;
   background: var(--cyan);
 }
-[data-benefit-motion] .why-control-idle { animation: why-wake 1.15s ease-in-out both; }
-[data-benefit-motion] .why-signal i { animation: why-signal 740ms ease-out both; }
-[data-benefit-motion] .why-signal i:nth-child(2) { animation-delay: 115ms; }
-[data-benefit-motion] .why-signal i:nth-child(3) { animation-delay: 230ms; }
-[data-benefit-motion] .why-angle > span { animation: why-dial 1.35s cubic-bezier(.18,.72,.24,1) both; }
-[data-benefit-motion] .why-safety-anchor { animation: why-clarify 680ms 320ms ease-out both; }
-[data-benefit-motion] .why-safety-steps span { animation: why-clarify 600ms ease-out both; }
-[data-benefit-motion] .why-safety-steps span:nth-child(2) { animation-delay: 200ms; }
-[data-benefit-motion] .why-safety-steps span:nth-child(3) { animation-delay: 350ms; }
-[data-benefit-motion] .why-task-heads figure { animation: why-clarify 560ms ease-out both; }
-[data-benefit-motion] .why-task-heads figure:nth-child(2) { animation-delay: 130ms; }
-[data-benefit-motion] .why-task-heads figure:nth-child(3) { animation-delay: 260ms; }
+[data-benefit-phase="playing"] .why-control-idle { animation: why-wake 1.15s ease-in-out both; }
+[data-benefit-phase="playing"] .why-signal i { animation: why-signal 740ms ease-out both; }
+[data-benefit-phase="playing"] .why-signal i:nth-child(2) { animation-delay: 115ms; }
+[data-benefit-phase="playing"] .why-signal i:nth-child(3) { animation-delay: 230ms; }
+[data-benefit-phase="playing"] .why-angle > span { animation: why-dial 1.35s cubic-bezier(.18,.72,.24,1) both; }
+[data-benefit-phase="playing"] .why-safety-anchor { animation: why-clarify 680ms 320ms ease-out both; }
+[data-benefit-phase="playing"] .why-safety-steps span { animation: why-clarify 600ms ease-out both; }
+[data-benefit-phase="playing"] .why-safety-steps span:nth-child(2) { animation-delay: 200ms; }
+[data-benefit-phase="playing"] .why-safety-steps span:nth-child(3) { animation-delay: 350ms; }
+[data-benefit-phase="playing"] .why-task-heads figure { animation: why-clarify 560ms ease-out both; }
+[data-benefit-phase="playing"] .why-task-heads figure:nth-child(2) { animation-delay: 130ms; }
+[data-benefit-phase="playing"] .why-task-heads figure:nth-child(3) { animation-delay: 260ms; }
 @keyframes why-wake { 0%,44% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes why-signal {
   from { opacity: .78; transform: scale(.35); }
@@ -446,5 +446,5 @@
   .validation-grid, .validation-grid--endurance { grid-template-columns: minmax(0,1fr); }
 }
 @media (prefers-reduced-motion: reduce) {
-  [data-benefit-motion] :is(.why-control-idle,.why-signal i,.why-angle > span,.why-safety-anchor,.why-safety-steps span,.why-task-heads figure) { animation: none; }
+  [data-benefit-phase="playing"] :is(.why-control-idle,.why-signal i,.why-angle > span,.why-safety-anchor,.why-safety-steps span,.why-task-heads figure) { animation: none; }
 }
