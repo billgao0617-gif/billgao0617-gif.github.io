@@ -14,7 +14,7 @@
       story.querySelector('.smart-story-fallback figcaption').hidden = false;
       if (bounds.bottom <= 0) scrollBy({top:story.getBoundingClientRect().bottom - bounds.bottom,behavior:'instant'});
     });
-  </script><link rel="stylesheet" href="/assets/smarttorque-details.css?v=f0ca5d747802"><script defer src="/assets/smarttorque-validation.js?v=5efe959b691b"></script><link rel="stylesheet" href="/assets/smarttorque-overview.css?v=34bf937fbafd"><script type="module" src="/assets/smarttorque-overview.js?v=e62e2a7c4e22"></script></head><body class="product-direct"><a class="skip" href="#main">Skip to content</a><header class="site-header"><div class="wrap nav"><a class="brand" href="/" aria-label="Gabbrotech home"><span class="brand-mark" aria-hidden="true"><img src="/assets/gabbrotech-symbol.webp" alt=""></span>Gabbrotech</a><nav class="nav-links" id="navigation" aria-label="Main navigation"><a href="/smarttorque/" aria-current="page" data-i18n-skip data-en="SmartTorque" data-zh="SmartTorque">SmartTorque</a><a href="/journey/" data-i18n-skip data-en="Our Journey" data-zh="探索历程">Our Journey</a><a href="/about/" data-i18n-skip data-en="About Us" data-zh="关于我们">About Us</a></nav><div class="nav-actions"><div class="display-controls"><button class="display-toggle language-toggle" type="button" data-ui="language" aria-label="Switch to Chinese">中文</button><button class="display-toggle theme-toggle" type="button" data-ui="theme" aria-label="Switch to light mode" title="Theme">◐</button></div><button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-controls="navigation" aria-expanded="false">☰</button></div></div></header><main id="main"><section id="product-story" class="smart-story" tabindex="-1" aria-labelledby="product-title" aria-describedby="product-story-description" data-i18n-skip>
+  </script><link rel="stylesheet" href="/assets/smarttorque-details.css?v=37b7fe367204"><link rel="stylesheet" href="/assets/smarttorque-validation.css?v=db3cb5cb5a03"><script defer src="/assets/smarttorque-validation.js?v=2ff6b4197e91"></script><link rel="stylesheet" href="/assets/smarttorque-overview.css?v=34bf937fbafd"><script type="module" src="/assets/smarttorque-overview.js?v=e62e2a7c4e22"></script></head><body class="product-direct"><a class="skip" href="#main">Skip to content</a><header class="site-header"><div class="wrap nav"><a class="brand" href="/" aria-label="Gabbrotech home"><span class="brand-mark" aria-hidden="true"><img src="/assets/gabbrotech-symbol.webp" alt=""></span>Gabbrotech</a><nav class="nav-links" id="navigation" aria-label="Main navigation"><a href="/smarttorque/" aria-current="page" data-i18n-skip data-en="SmartTorque" data-zh="SmartTorque">SmartTorque</a><a href="/journey/" data-i18n-skip data-en="Our Journey" data-zh="探索历程">Our Journey</a><a href="/about/" data-i18n-skip data-en="About Us" data-zh="关于我们">About Us</a></nav><div class="nav-actions"><div class="display-controls"><button class="display-toggle language-toggle" type="button" data-ui="language" aria-label="Switch to Chinese">中文</button><button class="display-toggle theme-toggle" type="button" data-ui="theme" aria-label="Switch to light mode" title="Theme">◐</button></div><button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-controls="navigation" aria-expanded="false">☰</button></div></div></header><main id="main"><section id="product-story" class="smart-story" tabindex="-1" aria-labelledby="product-title" aria-describedby="product-story-description" data-i18n-skip>
   <div class="smart-story-stage">
     <div class="smart-story-hero">
       <picture>
@@ -96,7 +96,7 @@
       <div class="motion-console" data-i18n-skip><div class="motion-toolbar"><button type="button" id="motion-reset" disabled>Reset motion</button><span id="motion-state">READY</span></div><label class="drive-label" for="drive-slider" id="drive-label">Drive the gear</label><div class="drive-row"><input id="drive-slider" type="range" min="0" max="720" step="1" value="0" disabled aria-label="Drive gear angle"><output id="drive-output" for="drive-slider">0°</output></div><p id="motion-description">Drag a gear in the exploded view, or use this control.</p><small id="motion-note">Illustrative mechanism motion · not a load or performance simulation</small></div><div class="inspection-tools"><button id="rotate-button" type="button" aria-label="Start automatic rotation" aria-pressed="false" title="Auto rotate"><span  data-i18n-skip data-en="Auto rotate" data-zh="自动旋转">Auto rotate</span></button><button class="viewer-action" id="reset-button" type="button" disabled>Reset view</button></div><div class="part-selector"><h3>Components</h3><div id="part-list" class="part-list" data-i18n-skip></div></div>
     </aside>
   </div>
-  <div class="wrap stage-foot"><nav class="product-chapters" aria-label="SmartTorque demonstrations"><a href="#attachments" data-i18n-skip data-en="Attachments" data-zh="任务接头">Attachments</a><a href="#voice" data-i18n-skip data-en="Voice demo" data-zh="语音演示">Voice demo</a><a href="#architecture" data-i18n-skip data-en="Control system" data-zh="控制系统">Control system</a></nav></div>
+  <div class="wrap stage-foot"><nav class="product-chapters" aria-label="SmartTorque demonstrations"><a href="#attachments" data-i18n-skip data-en="Attachments" data-zh="任务接头">Attachments</a><a href="#voice" data-i18n-skip data-en="Voice demo" data-zh="语音演示">Voice demo</a><a href="#architecture">Why SmartTorque</a><a href="#metrics" data-i18n-skip data-en="Performance &amp; validation" data-zh="性能与验证">Performance &amp; validation</a></nav></div>
 </section><section id="overview" class="section smart-detail smart-guide" aria-labelledby="guide-title">
   <div class="wrap">
     <header class="detail-heading">
@@ -239,31 +239,239 @@
     </div>
   </div>
 </section>
-<details class="technical-detail"><summary><span data-i18n-skip data-en="System architecture" data-zh="系统架构">System architecture</span><span aria-hidden="true">＋</span></summary><section class="section" id="architecture"><div class="wrap"><div class="section-head reveal"><div><div class="overline">06 / System architecture</div><h2>The components behind the control.</h2></div><p class="section-intro">The current concept combines accessible operator interfaces with an Arduino-based controller, a powered drive and a modular mechanical output.</p></div><div class="architecture"><div class="component-list"><div class="component reveal"><strong>Voice-recognition module</strong><p>Recognizes “智能工具” (wake ID: 1) and 15 supplied commands (CMDID: 5–19). The vocabulary supports up to 17 command entries.</p></div><div class="component reveal"><strong>LCD screen</strong><p>Presents operating parameters and system feedback.</p></div><div class="component reveal"><strong>Arduino-based main board</strong><p>Coordinates inputs, stored settings, sensing logic and motor-control commands in the prototype architecture.</p></div><div class="component reveal"><strong>Encoder and feedback shaft</strong><p>The encoder, shaft and associated gears provide a mechanical path for rotational feedback in the prototype.</p></div><div class="component reveal"><strong>Powered drive and battery</strong><p>Supplies controlled motion and portable energy for repeated operations.</p></div><div class="component reveal"><strong>Quick-change coupling and retention</strong><p>Connects task heads with a positive lock and supports tethering of the body.</p></div></div><div class="architecture-note reveal"><div class="overline">Environment-led design</div><h3>Protection designed into structure, materials and electronics.</h3><p>Development priorities include operation in vacuum, temperature variation, radiation exposure and electromagnetic interference. Qualification levels and test results will be published when verified.</p><p class="fineprint">Arduino refers to the prototype control architecture. Flight electronics and environmental qualification require separate engineering validation.</p></div></div></div></section></details><details class="technical-detail validation-details" open><summary><span data-i18n-skip data-en="Performance &amp; validation" data-zh="性能与验证">Performance &amp; validation</span><span aria-hidden="true">＋</span></summary><section class="section tech-band smart-detail" id="metrics"><div class="wrap"><div class="section-head reveal"><div><div class="overline">07 / Key metrics</div><h2>Measured by the work it enables.</h2></div><p class="section-intro" data-i18n-skip data-en="Bench targets guide prototype testing. Verified results will be published after measurement." data-zh="先设定台架验证目标，完成测量后再公布实测结果。">Bench targets guide prototype testing. Verified results will be published after measurement.</p></div>
-  <article class="validation-target" aria-labelledby="validation-target-title">
-    <div class="validation-target-copy">
-      <span class="validation-target-status" data-i18n-skip data-en="Proposed target" data-zh="拟定目标">Proposed target</span>
-      <h3 id="validation-target-title" data-i18n-skip data-en="Stop-position accuracy" data-zh="停转位置精度">Stop-position accuracy</h3>
-      <p class="validation-target-value" aria-hidden="true">±<span data-validation-number>0.05</span><span class="validation-target-unit" data-i18n-skip data-en=" turn" data-zh=" 圈"> turn</span></p>
-      <p class="validation-sr" data-i18n-skip data-en="Allowable stop error: plus or minus 0.05 turn." data-zh="允许停转误差为正负 0.05 圈。">Allowable stop error: plus or minus 0.05 turn.</p>
-      <p class="validation-target-context" data-i18n-skip data-en="Allowable error for a 2.00-turn command." data-zh="以 2.00 圈指令为基准的允许误差。">Allowable error for a 2.00-turn command.</p>
+<section class="smart-detail why-section" id="architecture" aria-labelledby="why-title">
+  <div class="wrap">
+    <header class="detail-heading">
+      <h2 id="why-title">Why SmartTorque</h2>
+      <p data-i18n-skip data-en="Four design decisions for working with gloves." data-zh="面向戴手套作业的四项设计。">Four design decisions for working with gloves.</p>
+    </header>
+    <div class="why-scenes">
+      <article class="why-row why-row--control">
+        <div class="why-copy">
+          <h3 data-i18n-skip data-en="Easy to operate" data-zh="易操控">Easy to operate</h3>
+          <p data-i18n-skip data-en="Wake by voice and check the active settings on the top display." data-zh="语音唤醒，抬眼查看屏幕上的作业设定。">Wake by voice and check the active settings on the top display.</p>
+        </div>
+        <div class="why-stage">
+          <div class="why-control-media" aria-hidden="true">
+            <img class="why-control-en" src="/assets/editorial/smarttorque-why-control-lit.webp" alt="" width="1000" height="660" loading="lazy" decoding="async">
+            <img class="why-control-zh" src="/assets/editorial/smarttorque-why-control-lit-zh.webp" alt="" width="1000" height="660" loading="lazy" decoding="async">
+            <img class="why-control-idle" src="/assets/editorial/smarttorque-why-control-idle.webp" alt="" width="1000" height="660" loading="lazy" decoding="async">
+            <span class="why-signal"><i></i><i></i><i></i></span>
+          </div>
+        </div>
+        <div class="why-parts">
+          <figure class="why-part">
+            <img src="/assets/editorial/smarttorque-why-voice.webp" alt="" width="540" height="340" loading="lazy" decoding="async">
+            <figcaption data-i18n-skip data-en="Voice module" data-zh="语音识别模块">Voice module</figcaption>
+          </figure>
+<figure class="why-part">
+            <img src="/assets/editorial/smarttorque-why-lcd.webp" alt="" width="540" height="340" loading="lazy" decoding="async">
+            <figcaption data-i18n-skip data-en="LCD" data-zh="LCD 屏幕">LCD</figcaption>
+          </figure>
+<figure class="why-part">
+            <img src="/assets/editorial/smarttorque-why-board.webp" alt="" width="540" height="340" loading="lazy" decoding="async">
+            <figcaption data-i18n-skip data-en="Control board" data-zh="控制主板">Control board</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="why-row why-row--precision">
+        <div class="why-copy">
+          <h3 data-i18n-skip data-en="Controlled stopping" data-zh="可控停转">Controlled stopping</h3>
+          <p data-i18n-skip data-en="Encoder feedback tracks rotation against the commanded turn count." data-zh="编码器反馈转动位置，用于按设定圈数停转。">Encoder feedback tracks rotation against the commanded turn count.</p>
+        </div>
+        <div class="why-stage">
+          <div class="why-feedback-media" aria-hidden="true">
+            <img src="/assets/editorial/smarttorque-why-feedback.webp" alt="" width="540" height="340" loading="lazy" decoding="async">
+            <div class="why-angle"><i></i><i></i><i></i><i></i><span></span></div>
+          </div>
+          <p class="why-stage-note"><span data-i18n-skip data-en="Commanded turns" data-zh="指令圈数">Commanded turns</span> <b>2.00</b></p>
+        </div>
+        <div class="why-parts">
+          <figure class="why-part">
+            <img src="/assets/editorial/smarttorque-why-feedback.webp" alt="" width="540" height="340" loading="lazy" decoding="async">
+            <figcaption data-i18n-skip data-en="Encoder and feedback shaft" data-zh="编码器与反馈轴">Encoder and feedback shaft</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="why-row why-row--safety">
+        <div class="why-copy">
+          <h3 data-i18n-skip data-en="Secure in use" data-zh="作业安全">Secure in use</h3>
+          <p data-i18n-skip data-en="A locking interface secures the head. A separate curved ring provides a tether point." data-zh="快拆接口锁住接头，侧面弧形环提供独立系留点。">A locking interface secures the head. A separate curved ring provides a tether point.</p>
+        </div>
+        <div class="why-stage">
+          <div class="why-safety-media">
+            <img class="why-safety-photo" src="/assets/editorial/smarttorque-detail-retention.webp" alt="" width="1920" height="1080" loading="lazy" decoding="async">
+            <div class="why-safety-anchor">
+              <img src="/assets/editorial/smarttorque-eva-fastening.webp?v=6fce9e118521" alt="" width="1672" height="941" loading="lazy" decoding="async">
+              <span data-i18n-skip data-en="Suit attachment" data-zh="宇航服系留点">Suit attachment</span>
+            </div>
+          </div>
+          <div class="why-safety-steps">
+            <span data-i18n-skip data-en="Head locked" data-zh="接头锁止">Head locked</span><span aria-hidden="true">→</span><span data-i18n-skip data-en="Tool tethered" data-zh="工具系留">Tool tethered</span>
+          </div>
+        </div>
+        <div class="why-parts">
+          <figure class="why-part">
+            <img src="/assets/editorial/smarttorque-why-coupling.webp" alt="" width="540" height="340" loading="lazy" decoding="async">
+            <figcaption data-i18n-skip data-en="Quick release and tether ring" data-zh="快拆与弧形系留环">Quick release and tether ring</figcaption>
+          </figure>
+        </div>
+      </article>
+      <article class="why-row why-row--portable">
+        <div class="why-copy">
+          <h3 data-i18n-skip data-en="One body, three tasks" data-zh="便携多用">One body, three tasks</h3>
+          <p data-i18n-skip data-en="Use the same powered body for fastening, gripping and cutting." data-zh="同一动力机身完成紧固、夹持和剪切。">Use the same powered body for fastening, gripping and cutting.</p>
+        </div>
+        <div class="why-stage">
+          <div class="why-task-heads">
+            <figure>
+              <img src="/assets/editorial/smarttorque-detail-driver.webp?v=51e8c998bee1" alt="" width="1920" height="1080" loading="lazy" decoding="async">
+              <figcaption data-i18n-skip data-en="Fasten" data-zh="紧固">Fasten</figcaption>
+            </figure>
+            <figure>
+              <img src="/assets/editorial/smarttorque-detail-pliers.webp?v=cc654ea53d36" alt="" width="1920" height="1080" loading="lazy" decoding="async">
+              <figcaption data-i18n-skip data-en="Grip" data-zh="夹持">Grip</figcaption>
+            </figure>
+            <figure>
+              <img src="/assets/editorial/smarttorque-detail-scissors.webp?v=a8724e8e9d09" alt="" width="1920" height="1080" loading="lazy" decoding="async">
+              <figcaption data-i18n-skip data-en="Cut" data-zh="剪切">Cut</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="why-parts">
+          <figure class="why-part">
+            <img src="/assets/editorial/smarttorque-why-drive.webp" alt="" width="540" height="340" loading="lazy" decoding="async">
+            <figcaption data-i18n-skip data-en="Drive unit" data-zh="驱动组件">Drive unit</figcaption>
+          </figure>
+<figure class="why-part why-part--diagram">
+            <div class="why-battery" aria-hidden="true"><i></i><i></i><i></i></div>
+            <figcaption><span data-i18n-skip data-en="Battery" data-zh="电池">Battery</span> <small data-i18n-skip data-en="Schematic" data-zh="结构示意">Schematic</small></figcaption>
+          </figure>
+        </div>
+      </article>
     </div>
-    <figure class="validation-chart" aria-labelledby="validation-chart-title" aria-describedby="validation-chart-caption">
-      <div class="validation-chart-head">
-        <p id="validation-chart-title" data-i18n-skip data-en="Target window" data-zh="目标允差区间">Target window</p>
-        <span class="validation-test-state" data-i18n-skip data-en="Bench test pending" data-zh="待台架验证">Bench test pending</span>
+  </div>
+</section>
+<section class="smart-detail validation-section" id="metrics" aria-labelledby="metrics-title">
+  <div class="wrap">
+    <header class="detail-heading">
+      <h2 id="metrics-title" data-i18n-skip data-en="Performance &amp; validation" data-zh="性能与验证">Performance &amp; validation</h2>
+      <div class="validation-intro">
+        <div class="validation-status"><span data-i18n-skip data-en="Target" data-zh="拟定目标">Target</span><span data-i18n-skip data-en="Bench validation pending" data-zh="待台架验证">Bench validation pending</span></div>
+        <p data-i18n-skip data-en="Ground-test targets. One standard cycle starts with the socket fitted and includes fastening, gripping, cutting and two head changes." data-zh="地面台架目标。标准循环从装好套筒开始，包括紧固、夹持、剪切及两次换头。">Ground-test targets. One standard cycle starts with the socket fitted and includes fastening, gripping, cutting and two head changes.</p>
       </div>
-      <div class="validation-chart-plot" aria-hidden="true">
-        <div class="validation-chart-track">
-          <span class="validation-chart-window"></span>
-          <span class="validation-chart-reference"></span>
+    </header>
+      <section class="validation-group" aria-labelledby="metrics-efficiency">
+    <h3 id="metrics-efficiency" data-i18n-skip data-en="Efficiency" data-zh="效率">Efficiency</h3>
+    <div class="validation-grid validation-grid--efficiency">
+      <article class="validation-metric" data-metric="time">
+        <h4 data-i18n-skip data-en="Task completion time" data-zh="任务完成时间">Task completion time</h4>
+        <div class="metric-values" aria-hidden="true"><span class="metric-target-value">≤<span data-metric-number>60</span><span class="metric-unit" data-i18n-skip data-en="s" data-zh="秒">s</span></span></div>
+        <p class="validation-sr" data-i18n-skip data-en="Proposed target: at most 60 seconds per standard cycle." data-zh="拟定目标为每个标准循环不超过 60 秒。">Proposed target: at most 60 seconds per standard cycle.</p>
+        <div class="metric-chart" aria-hidden="true">
+          <div class="metric-rail metric-rail--segments" style="grid-template-columns:3fr 2fr 1fr;"><span></span><span></span><span></span></div>
+          <div class="metric-segments" style="grid-template-columns:3fr 2fr 1fr;"><span data-i18n-skip data-en="Work · 30 s" data-zh="作业 · 30 秒">Work · 30 s</span><span data-i18n-skip data-en="Swaps · 20 s" data-zh="换头 · 20 秒">Swaps · 20 s</span><span data-i18n-skip data-en="Allowance · 10 s" data-zh="余量 · 10 秒">Allowance · 10 s</span></div>
         </div>
-        <div class="validation-chart-ticks">
-          <span>1.90</span><span>1.95</span><strong>2.00</strong><span>2.05</span><span>2.10</span>
+        <p class="metric-method" data-i18n-skip data-en="Per standard cycle. Budget 30 s for operations, 20 s for two swaps and 10 s of allowance." data-zh="每个标准循环。分配 30 秒作业、20 秒换头、10 秒余量。">Per standard cycle. Budget 30 s for operations, 20 s for two swaps and 10 s of allowance.</p>
+      </article>
+      <article class="validation-metric" data-metric="swap">
+        <h4 data-i18n-skip data-en="Attachment-switching time" data-zh="接头切换时间">Attachment-switching time</h4>
+        <div class="metric-values" aria-hidden="true"><span class="metric-target-value">≤<span data-metric-number>10</span><span class="metric-unit" data-i18n-skip data-en="s" data-zh="秒">s</span></span></div>
+        <p class="validation-sr" data-i18n-skip data-en="Proposed target: at most 10 seconds per swap." data-zh="拟定目标为每次换头不超过 10 秒。">Proposed target: at most 10 seconds per swap.</p>
+        <div class="metric-chart" aria-hidden="true">
+          <div class="metric-rail metric-rail--segments" style="grid-template-columns:1fr 1fr 1fr;"><span></span><span></span><span></span></div>
+          <div class="metric-segments" style="grid-template-columns:1fr 1fr 1fr;"><span data-i18n-skip data-en="Release" data-zh="解锁">Release</span><span data-i18n-skip data-en="Swap" data-zh="更换">Swap</span><span data-i18n-skip data-en="Confirm" data-zh="确认锁止">Confirm</span></div><div class="metric-ticks"><span>0 s</span><span></span><span>10 s</span></div>
         </div>
-      </div>
-      <figcaption id="validation-chart-caption" class="validation-chart-caption" data-i18n-skip data-en="Target range after the tool stops: 1.95–2.05 turns." data-zh="工具停止后，输出端的目标范围为 1.95–2.05 圈。">Target range after the tool stops: 1.95–2.05 turns.</figcaption>
-    </figure>
-    <p class="validation-target-method" data-i18n-skip data-en="The initial tolerance is 2.5% of a two-turn command, or ±18°. In an unloaded bench test, measure the final output-shaft angle independently." data-zh="初步允差取两圈指令的 2.5%，即 ±18°。计划在空载台架上独立测量输出轴的最终位置。">The initial tolerance is 2.5% of a two-turn command, or ±18°. In an unloaded bench test, measure the final output-shaft angle independently.</p>
-  </article>
-  <div class="metric-groups"><div class="metric-group reveal"><h3>Efficiency</h3><ul><li><strong>Task completion time</strong><span>Elapsed time for a defined task sequence</span><span class="pending">Validation pending</span></li><li><strong>Attachment-switching time</strong><span>Time to remove, fit and confirm a head lock</span><span class="pending">Validation pending</span></li><li><strong>Torque / speed accuracy</strong><span>Deviation from commanded operating settings</span><span class="pending">Validation pending</span></li></ul></div><div class="metric-group reveal"><h3>Reliability</h3><ul><li><strong>Successful operation rate</strong><span>Completed actions across repeated trials</span><span class="pending">Validation pending</span></li><li><strong>System failure rate</strong><span>Failures per defined operating interval</span><span class="pending">Validation pending</span></li></ul></div><div class="metric-group reveal"><h3>Endurance</h3><ul><li><strong>Battery runtime</strong><span>Active operation across a representative duty cycle</span><span class="pending">Validation pending</span></li><li><strong>Standby time</strong><span>Available idle duration between operations</span><span class="pending">Validation pending</span></li><li><strong>Tasks per charge</strong><span>Completed task cycles on one battery charge</span><span class="pending">Validation pending</span></li></ul></div></div></div></section></details><section class="mission-field" id="product-mission" aria-labelledby="mission-title"><img class="orbital-atmosphere" src="/assets/editorial/orbital-horizon.webp" alt="" loading="lazy" decoding="async"><div class="mission-words"><h2 id="mission-title" data-i18n-skip data-en="Built for gloved hands" data-zh="为戴手套的双手而设计">Built for gloved hands</h2><div class="mission-symbols"><div><svg viewbox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 36a20 20 0 1 1 32 0M24 24l10-11M10 29l4-1m20 0 4 1M24 5v5"></path><circle cx="24" cy="24" r="3"></circle></svg><span data-i18n-skip data-en="Efficiency" data-zh="作业效率">Efficiency</span></div><div><svg viewbox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 4 42 11v12c0 11-8 18-18 22C14 41 6 34 6 23V11Z"></path><path d="m15 24 6 6 13-15"></path></svg><span data-i18n-skip data-en="Safety" data-zh="操作安全">Safety</span></div><div><svg viewbox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="18" y="5" width="12" height="25" rx="6"></rect><path d="M12 23a12 12 0 0 0 24 0M24 35v8m-8 0h16"></path></svg><span data-i18n-skip data-en="Intuitive control" data-zh="直观控制">Intuitive control</span></div></div><a class="action-link" href="/about/#team"><span data-i18n-skip data-en="Meet the Team" data-zh="认识团队">Meet the Team</span></a></div></section></main><footer class="site-footer"><div class="studio-footer"><a class="brand" href="/">Gabbrotech</a><div class="footer-links"><a href="/smarttorque/">SmartTorque</a><a href="/about/"><span data-i18n-skip data-en="About Us" data-zh="关于我们">About Us</span></a></div><div class="studio-colophon"><span>© 2026 Gabbrotech</span><a href="https://www.nasa.gov/image-article/sunrise-begins/" rel="noopener" target="_blank"><span data-i18n-skip data-en="Earth image: NASA / Matthew Dominick" data-zh="地球日出摄影 · NASA / Matthew Dominick">Earth image: NASA / Matthew Dominick</span></a></div></div></footer></body></html>
+        <p class="metric-method" data-i18n-skip data-en="Starts with release and ends when the next head is confirmed locked." data-zh="从开始解锁，到确认新接头锁止。">Starts with release and ends when the next head is confirmed locked.</p>
+      </article>
+      <article class="validation-metric" data-metric="accuracy">
+        <h4 data-i18n-skip data-en="Torque and speed accuracy" data-zh="扭矩与转速精度">Torque and speed accuracy</h4>
+        <div class="metric-values" aria-hidden="true"><div><span data-i18n-skip data-en="Torque" data-zh="扭矩">Torque</span><span class="metric-target-value">±<span data-metric-number>15</span><span class="metric-unit" data-i18n-skip data-en="%" data-zh="%">%</span></span></div><div><span data-i18n-skip data-en="Speed" data-zh="转速">Speed</span><span class="metric-target-value">±<span data-metric-number>10</span><span class="metric-unit" data-i18n-skip data-en="%" data-zh="%">%</span></span></div></div>
+        <p class="validation-sr" data-i18n-skip data-en="Proposed targets: plus or minus 15 percent torque error and plus or minus 10 percent steady-speed error." data-zh="拟定目标为扭矩误差正负 15%，稳态转速误差正负 10%。">Proposed targets: plus or minus 15 percent torque error and plus or minus 10 percent steady-speed error.</p>
+        <div class="metric-chart" aria-hidden="true">
+          <div class="metric-dual"><div><span data-i18n-skip data-en="Torque" data-zh="扭矩">Torque</span><div class="metric-interval" style="--metric-band:75%"><span></span><i></i></div>
+          <div class="metric-ticks"></div></div><div><span data-i18n-skip data-en="Speed" data-zh="转速">Speed</span><div class="metric-interval" style="--metric-band:50%"><span></span><i></i></div>
+          <div class="metric-ticks"></div></div></div><div class="metric-ticks"><span>−20%</span><span>0</span><span>+20%</span></div>
+        </div>
+        <p class="metric-method" data-i18n-skip data-en="Relative error at the selected setting. Use an external reference for torque and steady speed." data-zh="以各自设定值为基准，用独立参照测量扭矩与稳态转速。">Relative error at the selected setting. Use an external reference for torque and steady speed.</p>
+      </article>
+      <article class="validation-metric" data-metric="position">
+        <h4 data-i18n-skip data-en="Stop-position accuracy" data-zh="停转位置精度">Stop-position accuracy</h4>
+        <div class="metric-values" aria-hidden="true"><span class="metric-target-value">±<span data-metric-number>0.05</span><span class="metric-unit" data-i18n-skip data-en="turn" data-zh="圈">turn</span></span></div>
+        <p class="validation-sr" data-i18n-skip data-en="Proposed target: plus or minus 0.05 turn." data-zh="拟定目标为正负 0.05 圈。">Proposed target: plus or minus 0.05 turn.</p>
+        <div class="metric-chart" aria-hidden="true">
+          <div class="metric-interval" style="--metric-band:50%"><span></span><i></i></div>
+          <div class="metric-ticks"><span>1.90</span><span>1.95</span><span>2.00</span><span>2.05</span><span>2.10</span></div>
+        </div>
+        <p class="metric-method" data-i18n-skip data-en="For a 2.00-turn command, the target is 1.95–2.05 turns (±18°)." data-zh="指令为 2.00 圈时，输出端目标为 1.95–2.05 圈（±18°）。">For a 2.00-turn command, the target is 1.95–2.05 turns (±18°).</p>
+      </article>
+    </div>
+  </section>
+      <section class="validation-group" aria-labelledby="metrics-reliability">
+    <h3 id="metrics-reliability" data-i18n-skip data-en="Reliability" data-zh="可靠性">Reliability</h3>
+    <div class="validation-grid validation-grid--reliability">
+      <article class="validation-metric" data-metric="success">
+        <h4 data-i18n-skip data-en="Successful operation rate" data-zh="成功作业率">Successful operation rate</h4>
+        <div class="metric-values" aria-hidden="true"><span class="metric-target-value">≥<span data-metric-number>95</span><span class="metric-unit" data-i18n-skip data-en="%" data-zh="%">%</span></span></div>
+        <p class="validation-sr" data-i18n-skip data-en="Proposed target: at least 95 percent first-pass standard cycles." data-zh="拟定目标为至少 95% 的标准循环一次通过。">Proposed target: at least 95 percent first-pass standard cycles.</p>
+        <div class="metric-chart" aria-hidden="true">
+          <div class="metric-matrix">
+            <i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i>
+            <i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i>
+            <i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i>
+            <i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i>
+            <i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i data-success-cell></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+        </div>
+        <p class="metric-method" data-i18n-skip data-en="At least 95 of 100 standard cycles pass on the first attempt." data-zh="100 个标准循环中，至少 95 个一次通过。">At least 95 of 100 standard cycles pass on the first attempt.</p>
+      </article>
+      <article class="validation-metric" data-metric="faults">
+        <h4 data-i18n-skip data-en="System fault rate" data-zh="系统故障率">System fault rate</h4>
+        <div class="metric-values" aria-hidden="true"><span class="metric-target-value">≤<span data-metric-number>1</span><span class="metric-unit" data-i18n-skip data-en="%" data-zh="%">%</span></span></div>
+        <p class="validation-sr" data-i18n-skip data-en="Proposed target: at most one percent of cycles with a system fault." data-zh="拟定目标为系统故障率不超过 1%。">Proposed target: at most one percent of cycles with a system fault.</p>
+        <div class="metric-chart" aria-hidden="true">
+          <div class="metric-rail" style="--target-position:20%"><span></span><i></i></div>
+          <div class="metric-ticks"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5%</span></div>
+        </div>
+        <p class="metric-method" data-i18n-skip data-en="At most one cycle out of 100 has a system fault that requires a reset." data-zh="100 个标准循环中，最多 1 个出现需要复位的系统故障。">At most one cycle out of 100 has a system fault that requires a reset.</p>
+      </article>
+    </div>
+  </section>
+      <section class="validation-group" aria-labelledby="metrics-endurance">
+    <h3 id="metrics-endurance" data-i18n-skip data-en="Endurance" data-zh="续航">Endurance</h3>
+    <div class="validation-grid validation-grid--endurance">
+      <article class="validation-metric" data-metric="runtime">
+        <h4 data-i18n-skip data-en="Battery work time" data-zh="电池工作时长">Battery work time</h4>
+        <div class="metric-values" aria-hidden="true"><span class="metric-target-value">≥<span data-metric-number>40</span><span class="metric-unit" data-i18n-skip data-en="min" data-zh="分钟">min</span></span></div>
+        <p class="validation-sr" data-i18n-skip data-en="Proposed target: at least 40 minutes of cumulative powered operation." data-zh="拟定目标为累计带载工作至少 40 分钟。">Proposed target: at least 40 minutes of cumulative powered operation.</p>
+        <div class="metric-chart" aria-hidden="true">
+          <div class="metric-rail" style="--target-position:66.667%"><span></span><i></i></div>
+          <div class="metric-ticks"><span>0</span><span>20</span><span>40</span><span>60</span></div>
+        </div>
+        <p class="metric-method" data-i18n-skip data-en="Cumulative powered operation under a representative load." data-zh="在代表性负载下累计带载工作时间。">Cumulative powered operation under a representative load.</p>
+      </article>
+      <article class="validation-metric" data-metric="standby">
+        <h4 data-i18n-skip data-en="Standby time" data-zh="待机时间">Standby time</h4>
+        <div class="metric-values" aria-hidden="true"><span class="metric-target-value">≥<span data-metric-number>12</span><span class="metric-unit" data-i18n-skip data-en="h" data-zh="小时">h</span></span></div>
+        <p class="validation-sr" data-i18n-skip data-en="Proposed target: at least 12 hours of standby." data-zh="拟定目标为待机至少 12 小时。">Proposed target: at least 12 hours of standby.</p>
+        <div class="metric-chart" aria-hidden="true">
+          <div class="metric-rail" style="--target-position:50%"><span></span><i></i></div>
+          <div class="metric-ticks"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div>
+        </div>
+        <p class="metric-method" data-i18n-skip data-en="From full charge with the wake function enabled." data-zh="从满充开始，保持唤醒功能可用。">From full charge with the wake function enabled.</p>
+      </article>
+      <article class="validation-metric" data-metric="cycles">
+        <h4 data-i18n-skip data-en="Tasks per charge" data-zh="单次充电任务数">Tasks per charge</h4>
+        <div class="metric-values" aria-hidden="true"><span class="metric-target-value">≥<span data-metric-number>60</span><span class="metric-unit" data-i18n-skip data-en="cycles" data-zh="个循环">cycles</span></span></div>
+        <p class="validation-sr" data-i18n-skip data-en="Proposed target: at least 60 standard cycles per charge." data-zh="拟定目标为单次充电至少完成 60 个标准循环。">Proposed target: at least 60 standard cycles per charge.</p>
+        <div class="metric-chart" aria-hidden="true">
+          <div class="metric-rail" style="--target-position:66.667%"><span></span><i></i></div>
+          <div class="metric-ticks"><span>0</span><span>30</span><span>60</span><span>90</span></div>
+        </div>
+        <p class="metric-method" data-i18n-skip data-en="Completed standard cycles on one charge. This has its own bench test." data-zh="单次充电完成的标准循环数，单独进行台架验证。">Completed standard cycles on one charge. This has its own bench test.</p>
+      </article>
+    </div>
+  </section>
+  </div>
+</section>
+<section class="mission-field" id="product-mission" aria-labelledby="mission-title"><img class="orbital-atmosphere" src="/assets/editorial/orbital-horizon.webp" alt="" loading="lazy" decoding="async"><div class="mission-words"><h2 id="mission-title" data-i18n-skip data-en="Built for gloved hands" data-zh="为戴手套的双手而设计">Built for gloved hands</h2><div class="mission-symbols"><div><svg viewbox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 36a20 20 0 1 1 32 0M24 24l10-11M10 29l4-1m20 0 4 1M24 5v5"></path><circle cx="24" cy="24" r="3"></circle></svg><span data-i18n-skip data-en="Efficiency" data-zh="作业效率">Efficiency</span></div><div><svg viewbox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 4 42 11v12c0 11-8 18-18 22C14 41 6 34 6 23V11Z"></path><path d="m15 24 6 6 13-15"></path></svg><span data-i18n-skip data-en="Safety" data-zh="操作安全">Safety</span></div><div><svg viewbox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="18" y="5" width="12" height="25" rx="6"></rect><path d="M12 23a12 12 0 0 0 24 0M24 35v8m-8 0h16"></path></svg><span data-i18n-skip data-en="Intuitive control" data-zh="直观控制">Intuitive control</span></div></div><a class="action-link" href="/about/#team"><span data-i18n-skip data-en="Meet the Team" data-zh="认识团队">Meet the Team</span></a></div></section></main><footer class="site-footer"><div class="studio-footer"><a class="brand" href="/">Gabbrotech</a><div class="footer-links"><a href="/smarttorque/">SmartTorque</a><a href="/about/"><span data-i18n-skip data-en="About Us" data-zh="关于我们">About Us</span></a></div><div class="studio-colophon"><span>© 2026 Gabbrotech</span><a href="https://www.nasa.gov/image-article/sunrise-begins/" rel="noopener" target="_blank"><span data-i18n-skip data-en="Earth image: NASA / Matthew Dominick" data-zh="地球日出摄影 · NASA / Matthew Dominick">Earth image: NASA / Matthew Dominick</span></a></div></div></footer></body></html>
