@@ -5,7 +5,10 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const columns = 3;
 const rows = 2;
 
-let video;
+let video, objectUrl;
+let preparing = false;
+const download = new AbortController();
+const portraitSizes = new ResizeObserver(resizeCrops);
 let crops = [];
 let frameRequest;
 let lastPaintedTime;
@@ -18,6 +21,8 @@ function finish() {
   preloadObserver.disconnect();
   team.removeAttribute('data-team-motion');
   team.removeAttribute('data-team-video-frame');
+  download.abort();
+  portraitSizes.disconnect();
   if (!video) return;
 
   if (frameRequest !== undefined) {
@@ -28,8 +33,22 @@ function finish() {
   video.removeAttribute('src');
   video.load();
   video.remove();
+  if (objectUrl) URL.revokeObjectURL(objectUrl);
   for (const { canvas } of crops) canvas.remove();
   crops = [];
+}
+
+function resizeCrops() {
+  if (!video?.videoWidth) return;
+  const sourceWidth = video.videoWidth / columns;
+  const ratio = window.devicePixelRatio || 1;
+  for (const {canvas,portrait} of crops) {
+    const width = Math.min(sourceWidth, Math.ceil(portrait.clientWidth * ratio));
+    if (width > 0 && canvas.width !== width) {
+      canvas.width = width;
+      canvas.height = Math.round(width * 4 / 3);
+    }
+  }
 }
 
 function drawFrame(time = video.currentTime) {
@@ -38,12 +57,12 @@ function drawFrame(time = video.currentTime) {
   // One decoded frame supplies all five portraits at the same instant.
   const width = video.videoWidth / columns;
   const height = video.videoHeight / rows;
-  crops.forEach(({ context }, index) => {
+  crops.forEach(({canvas,context}, index) => {
     context.drawImage(video, (index % columns) * width, Math.floor(index / columns) * height,
-      width, height, 0, 0, width, height);
+      width, height, 0, 0, canvas.width, canvas.height);
   });
+  if (lastPaintedTime === undefined) team.setAttribute('data-team-video-frame', '');
   lastPaintedTime = time;
-  team.setAttribute('data-team-video-frame', '');
 }
 
 function render(_now, frame) {
@@ -54,13 +73,26 @@ function render(_now, frame) {
     : requestAnimationFrame(render);
 }
 
-function prepareVideo() {
-  if (video || finished) return;
+async function prepareVideo() {
+  if (preparing || finished) return;
+  preparing = true;
   video = document.createElement('video');
   if (!video.canPlayType('video/mp4')) {
     finish();
     return;
   }
+  try {
+    // Start from the complete clip so a slow connection cannot interrupt the entrance.
+    const response = await fetch(team.dataset.teamVideo,{signal:download.signal,priority:'low'});
+    if (!response.ok) throw new Error('Team video could not be downloaded');
+    const clip = await response.blob();
+    if (finished) return;
+    objectUrl = URL.createObjectURL(clip);
+  } catch {
+    finish();
+    return;
+  }
+
   video.className = 'team-video-source';
   video.muted = true;
   video.defaultMuted = true;
@@ -80,18 +112,20 @@ function prepareVideo() {
     crops = portraits.map(portrait => {
       const canvas = document.createElement('canvas');
       canvas.className = 'team-portrait-video';
-      canvas.width = width;
-      canvas.height = height;
+      canvas.width = 1;
+      canvas.height = 1;
       canvas.setAttribute('aria-hidden', 'true');
       portrait.append(canvas);
-      return { canvas, context: canvas.getContext('2d', { alpha: false }) };
+      portraitSizes.observe(portrait);
+      return {canvas,portrait,context:canvas.getContext('2d',{alpha:false})};
     });
-    if (crops.some(crop => !crop.context)) finish();
+    if (crops.some(crop => !crop.context)) { finish(); return; }
+    resizeCrops();
   }, { once: true });
   video.addEventListener('canplay', tryPlayback);
   video.addEventListener('playing', render, { once: true });
   stage.append(video);
-  video.src = team.dataset.teamVideo;
+  video.src = objectUrl;
 }
 
 const visiblePortraits = new Set();
@@ -114,7 +148,7 @@ const preloadObserver = new IntersectionObserver(([entry]) => {
   if (!entry.isIntersecting) return;
   preloadObserver.disconnect();
   prepareVideo();
-}, {rootMargin:'430px 0px'});
+}, {rootMargin:'850px 0px'});
 
 if (team.dataset.teamVideo && !reducedMotion.matches) {
   team.setAttribute('data-team-motion', '');
@@ -125,6 +159,9 @@ if (team.dataset.teamVideo && !reducedMotion.matches) {
     if (!started) { tryPlayback(); return; }
     if (document.hidden) video.pause();
     else video.play().catch(finish);
+  });
+  window.addEventListener('pagehide',event => {
+    if (!event.persisted) finish();
   });
   reducedMotion.addEventListener('change', event => {
     if (event.matches) finish();

@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { cloneCadPart, loadCadManifest, solidWorksMatrix, isBodyPart } from './cad-assets.js?v=adb15ad71e35';
+import { cloneCadPart, loadCadManifest, solidWorksMatrix, isBodyPart } from './cad-assets.js?v=563b4eb3d7d2';
 import { addCommercialHousing, brushedMetal, makeBodyFinish, roundedDeck, deckShoulder, displayFit, makeStudioEnvironment } from './smarttorque-story-finish.js?v=7632a549065e';
 import { makeScreenReadout, makeWakeDisplay, makeWakeWaves } from './smarttorque-story-interface.js?v=7ce899e23fa6';
 import { Mechanism } from './mechanism.js?v=84d3a46e6944';
-import { makeSideTether } from './smarttorque-side-tether.js?v=ce4089a8d298';
+import { makeSideTether } from './smarttorque-side-tether.js?v=9c15c5c3b7c3';
 import { evaCamera } from './smarttorque-story-timeline.js?v=c19916e3a44c';
 
 const finish = (color, metalness, roughness) => new THREE.MeshPhysicalMaterial({

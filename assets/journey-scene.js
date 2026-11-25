@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { cloneCadPart, isBodyPart, loadCadManifest, solidWorksMatrix } from './cad-assets.js?v=adb15ad71e35';
+import { cloneCadPart, isBodyPart, loadCadManifest, solidWorksMatrix } from './cad-assets.js?v=563b4eb3d7d2';
 import { addCommercialHousing, brushedMetal, deckShoulder, displayFit, makeBodyFinish, makeStudioEnvironment, roundedDeck } from './smarttorque-story-finish.js?v=b0f44731fe7f';
 
 const orientation = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(Math.PI, 0, -Math.PI / 2));
@@ -366,7 +366,7 @@ export async function buildJourneyScene(host) {
   const renderer = new THREE.WebGLRenderer({alpha: true, antialias: true, powerPreference: 'high-performance'});
   renderer.localClippingEnabled = true;
   renderer.setClearColor(0, 0);
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.65));
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   const environment = makeStudioEnvironment(renderer);
   const scene = new THREE.Scene();
@@ -425,7 +425,7 @@ export async function buildJourneyScene(host) {
     const lines = [];
     const trace = new THREE.LineBasicMaterial({color:0xa5f0fc,transparent:true,opacity:0,depthWrite:false});
     const addPart = async (row, container, finish) => {
-      const shape = await cloneCadPart(row.url);
+      const shape = await cloneCadPart(row.url,{compressed:true});
       const useOutline = [5,6,7,8,10,12,27,28].includes(number(row));
       const edges = [];
       shape.traverse(child => {

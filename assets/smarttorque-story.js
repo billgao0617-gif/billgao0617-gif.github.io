@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { buildStoryScene } from './smarttorque-story-scene.js?v=7335e0895730';
+import { buildStoryScene } from './smarttorque-story-scene.js?v=8de27df83091';
 import { ease, voiceStart, tetherStart, positionStoryParts, attachmentAt, evaCamera, storyProgress } from './smarttorque-story-timeline.js?v=c19916e3a44c';
 
 const story = document.querySelector('.smart-story');

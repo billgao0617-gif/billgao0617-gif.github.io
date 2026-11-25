@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { cloneCadPart, loadCadManifest, solidWorksMatrix as swMatrix, isBodyPart, curvedRetentionSeat } from './cad-assets.js?v=adb15ad71e35';
+import { cloneCadPart, loadCadManifest, solidWorksMatrix as swMatrix, isBodyPart, curvedRetentionSeat } from './cad-assets.js?v=563b4eb3d7d2';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { Mechanism } from './mechanism.js?v=84d3a46e6944';
 

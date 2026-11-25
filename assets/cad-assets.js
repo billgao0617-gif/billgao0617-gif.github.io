@@ -5,11 +5,14 @@ const loader = new VRMLLoader();
 const files = new Map();
 let manifest;
 
-async function fetchAsset(url, type) {
+const packedJourneyParts = new Set(['006','007','009','010','015','016','022']
+  .map(id=>'/assets/cad/part-'+id+'.wrl'));
+
+async function fetchAsset(url, type, timeout = 12000) {
   for (let attempt = 0; ; attempt++) {
     let retryable = true;
     try {
-      const response = await fetch(url, {signal:AbortSignal.timeout?.(12000)});
+      const response = await fetch(url, {signal:AbortSignal.timeout?.(timeout)});
       if (!response.ok) {
         retryable = response.status === 408 || response.status === 429 || response.status >= 500;
         throw new Error(`Could not load ${url} (${response.status})`);
@@ -29,9 +32,22 @@ export function loadCadManifest() {
   });
 }
 
-export async function cloneCadPart(url) {
+async function fetchCadSource(url, compressed) {
+  if (compressed && packedJourneyParts.has(url) && window.DecompressionStream) {
+    try {
+      const packed = await fetchAsset(url+'.gz','arrayBuffer',26000);
+      const stream = new Blob([packed]).stream().pipeThrough(new DecompressionStream('gzip'));
+      return await new Response(stream).text();
+    } catch {
+      // Keep the same original CAD file available if the compressed copy is missing.
+    }
+  }
+  return fetchAsset(url,'text');
+}
+
+export async function cloneCadPart(url, {compressed = false} = {}) {
   if (!files.has(url)) {
-    files.set(url, fetchAsset(url, 'text').then(source => loader.parse(source, url)).catch(error => {
+    files.set(url, fetchCadSource(url,compressed).then(source => loader.parse(source, url)).catch(error => {
       files.delete(url);
       throw error;
     }));
